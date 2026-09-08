@@ -1,0 +1,16 @@
+{
+	"name": "@prc/wp-admin-tours",
+	"version": "1.0.0",
+	"description": "Code-defined wp-admin product tours for first-time editors. Other plugins register tours; this plugin runs the engine, matching, and progress.",
+	"scripts": {
+		"build": "wp-scripts build",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^31.4.0"
+	},
+	"dependencies": {
+		"@wordpress/icons": "^10.21.0",
+		"driver.js": "^1.8.0"
+	}
+}

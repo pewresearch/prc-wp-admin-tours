@@ -1,0 +1,246 @@
+.prc-wp-admin-tours-welcome {
+	--prc-welcome-bg: #e8e8e8;
+	--prc-welcome-fg: #111111;
+	--prc-welcome-muted: rgba(17, 17, 17, 0.62);
+	--prc-welcome-accent: #111111;
+	--prc-welcome-accent-contrast: #ffffff;
+	--prc-welcome-accent-hover: #2a2a2a;
+	--prc-welcome-outline: rgba(17, 17, 17, 0.4);
+	--prc-welcome-outline-hover-bg: rgba(17, 17, 17, 0.06);
+	position: fixed;
+	inset: 0;
+	z-index: 1000005;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 32px 24px;
+	background: var(--prc-welcome-bg);
+	color: var(--prc-welcome-fg);
+	color-scheme: light;
+	animation: prc-welcome-fade-in 0.45s ease both;
+
+	&.is-leaving {
+		animation: prc-welcome-fade-out 0.35s ease both;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	.prc-wp-admin-tours-welcome {
+		--prc-welcome-bg: #111111;
+		--prc-welcome-fg: #ffffff;
+		--prc-welcome-muted: rgba(255, 255, 255, 0.72);
+		--prc-welcome-accent: #ffffff;
+		--prc-welcome-accent-contrast: #111111;
+		--prc-welcome-accent-hover: #f3f3f3;
+		--prc-welcome-outline: rgba(255, 255, 255, 0.55);
+		--prc-welcome-outline-hover-bg: rgba(255, 255, 255, 0.08);
+		color-scheme: dark;
+	}
+}
+
+.prc-wp-admin-tours-welcome__inner {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-width: 36rem;
+	text-align: center;
+}
+
+.prc-wp-admin-tours-welcome__content {
+	width: 100%;
+	margin-top: 8px;
+	text-align: left;
+	font-size: clamp(1rem, 2vw, 1.15rem);
+	line-height: 1.5;
+	color: var(--prc-welcome-fg);
+	animation: prc-welcome-rise 0.55s ease 0.38s both;
+
+	h1,
+	h2,
+	h3 {
+		margin: 0 0 12px;
+		font-weight: 650;
+		letter-spacing: -0.03em;
+		line-height: 1.2;
+		text-align: center;
+	}
+
+	p {
+		margin: 0 0 12px;
+	}
+
+	ul,
+	ol {
+		margin: 0 0 12px;
+		padding-inline-start: 1.25em;
+	}
+
+	img {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin: 0 auto 12px;
+	}
+
+	.wp-block-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		justify-content: center;
+		margin: 16px 0 0;
+	}
+}
+
+.prc-wp-admin-tours-welcome picture {
+	display: block;
+	margin: 0 0 32px;
+}
+
+.prc-wp-admin-tours-welcome__logo {
+	display: block;
+	width: min(17.5rem, 80vw);
+	height: auto;
+	margin: 0;
+	object-fit: contain;
+	animation: prc-welcome-logo 0.7s ease 0.12s both;
+}
+
+.prc-wp-admin-tours-welcome__title {
+	margin: 0;
+	font-size: clamp(2rem, 4vw, 3rem);
+	font-weight: 650;
+	letter-spacing: -0.03em;
+	line-height: 1.15;
+	color: var(--prc-welcome-fg);
+	animation: prc-welcome-rise 0.55s ease 0.38s both;
+}
+
+.prc-wp-admin-tours-welcome__tagline {
+	margin: 12px 0 0;
+	font-size: clamp(1.05rem, 2vw, 1.35rem);
+	font-weight: 400;
+	line-height: 1.4;
+	color: var(--prc-welcome-muted);
+	animation: prc-welcome-rise 0.55s ease 0.52s both;
+}
+
+.prc-wp-admin-tours-welcome__prompt {
+	margin: 40px 0 0;
+	font-size: 0.95rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--prc-welcome-fg);
+	animation: prc-welcome-rise 0.55s ease 0.7s both;
+}
+
+.prc-wp-admin-tours-welcome__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: center;
+	margin-top: 20px;
+	animation: prc-welcome-rise 0.55s ease 0.86s both;
+}
+
+.prc-wp-admin-tours-welcome__action.components-button {
+	min-width: 10.5rem;
+	justify-content: center;
+	border-radius: 2px;
+	font-weight: 600;
+
+	&.is-primary {
+		background: var(--prc-welcome-accent);
+		color: var(--prc-welcome-accent-contrast);
+		border: 1px solid var(--prc-welcome-accent);
+
+		&:hover,
+		&:focus {
+			background: var(--prc-welcome-accent-hover);
+			color: var(--prc-welcome-accent-contrast);
+		}
+	}
+
+	&.is-secondary {
+		background: transparent;
+		color: var(--prc-welcome-fg);
+		border: 1px solid var(--prc-welcome-outline);
+		box-shadow: none;
+
+		&:hover,
+		&:focus {
+			background: var(--prc-welcome-outline-hover-bg);
+			color: var(--prc-welcome-fg);
+			border-color: var(--prc-welcome-fg);
+		}
+	}
+}
+
+.prc-wp-admin-tours-welcome__skip.components-button.is-link {
+	margin-top: 28px;
+	color: var(--prc-welcome-muted);
+	text-decoration: none;
+	animation: prc-welcome-rise 0.55s ease 1.02s both;
+
+	&:hover,
+	&:focus {
+		color: var(--prc-welcome-fg);
+		text-decoration: underline;
+	}
+}
+
+@keyframes prc-welcome-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes prc-welcome-fade-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes prc-welcome-logo {
+	from {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes prc-welcome-rise {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.prc-wp-admin-tours-welcome,
+	.prc-wp-admin-tours-welcome.is-leaving,
+	.prc-wp-admin-tours-welcome__logo,
+	.prc-wp-admin-tours-welcome__title,
+	.prc-wp-admin-tours-welcome__tagline,
+	.prc-wp-admin-tours-welcome__prompt,
+	.prc-wp-admin-tours-welcome__actions,
+	.prc-wp-admin-tours-welcome__content,
+	.prc-wp-admin-tours-welcome__skip.components-button.is-link {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+}
