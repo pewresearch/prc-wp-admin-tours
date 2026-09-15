@@ -115,13 +115,19 @@
 	animation: prc-welcome-rise 0.55s ease 0.38s both;
 }
 
-.prc-wp-admin-tours-welcome__tagline {
+.prc-wp-admin-tours-welcome__tagline,
+.prc-wp-admin-tours-welcome__body {
 	margin: 12px 0 0;
 	font-size: clamp(1.05rem, 2vw, 1.35rem);
 	font-weight: 400;
 	line-height: 1.4;
 	color: var(--prc-welcome-muted);
 	animation: prc-welcome-rise 0.55s ease 0.52s both;
+}
+
+.prc-wp-admin-tours-welcome__body {
+	white-space: pre-wrap;
+	text-align: center;
 }
 
 .prc-wp-admin-tours-welcome__prompt {
@@ -235,6 +241,7 @@
 	.prc-wp-admin-tours-welcome__logo,
 	.prc-wp-admin-tours-welcome__title,
 	.prc-wp-admin-tours-welcome__tagline,
+	.prc-wp-admin-tours-welcome__body,
 	.prc-wp-admin-tours-welcome__prompt,
 	.prc-wp-admin-tours-welcome__actions,
 	.prc-wp-admin-tours-welcome__content,

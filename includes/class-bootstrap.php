@@ -82,7 +82,7 @@ class Bootstrap {
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-rest-controller.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-assets.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-welcome.php';
-		require_once plugin_dir_path( __DIR__ ) . '/includes/class-splash-screen-block.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-settings.php';
 	}
 
 	/**
@@ -94,8 +94,7 @@ class Bootstrap {
 	private function init_dependencies() {
 		$this->registry = new Tour_Registry( $this->get_loader() );
 		new Welcome( $this->get_loader() );
-		new Splash_Catalog( $this->get_loader() );
-		new Splash_Screen_Block( $this->get_loader() );
+		new Settings( $this->get_loader() );
 		new REST_Controller( $this->get_loader(), $this->registry );
 		new Assets( $this->get_loader(), $this->registry );
 	}

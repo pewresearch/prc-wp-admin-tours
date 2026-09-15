@@ -60,10 +60,11 @@ class Tour_Registry {
 	}
 
 	/**
-	 * Register splash tours from the docs-site network catalog.
+	 * Register splash tours from Settings > Admin Tours.
 	 */
 	private function register_catalog_tours(): void {
-		foreach ( Splash_Catalog::rows_to_tours( Splash_Catalog::get() ) as $tour ) {
+		$settings = Settings::get_settings();
+		foreach ( Splash_Catalog::rows_to_tours( $settings['splashes'], $settings['showLogo'] ) as $tour ) {
 			$this->register( $tour );
 		}
 	}
@@ -120,6 +121,12 @@ class Tour_Registry {
 		$matching = array();
 		foreach ( $this->tours as $tour ) {
 			if ( ! current_user_can( $tour['capability'] ) ) {
+				continue;
+			}
+			if (
+				Splash_Catalog::is_catalog_tour_id( (string) ( $tour['id'] ?? '' ) )
+				&& Splash_Catalog::is_authoring_screen( $current )
+			) {
 				continue;
 			}
 			if ( ! Screen::tour_visible_on( $tour, $current ) ) {

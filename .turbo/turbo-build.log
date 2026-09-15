@@ -1,34 +1,40 @@
 
-> @prc/wp-admin-tours@1.0.0 build
-> wp-scripts build
+> @prc/wp-admin-tours@1.2.0 build
+> wp-scripts build && wp-scripts build --config webpack.settings.config.js
 
-assets by path [1m[32msplash-screen/[39m[22m 5.36 KiB
-  assets by chunk 4.24 KiB (name: splash-screen/index)
-    assets by path [1m[32msplash-screen/*.css[39m[22m 836 bytes 2 assets
-    + 2 assets
-  asset [1m[32msplash-screen/block.json[39m[22m 989 bytes [1m[32m[emitted][39m[22m [from: src/splash-screen/block.json] [1m[32m[copied][39m[22m
-  asset [1m[32msplash-screen/render.php[39m[22m 161 bytes [1m[32m[emitted][39m[22m [from: src/splash-screen/render.php] [1m[32m[copied][39m[22m
-assets by chunk 54.5 KiB (name: index)
-  assets by path [1m[32m*.css[39m[22m 15.6 KiB
-    asset [1m[32mindex.css[39m[22m 7.78 KiB [1m[32m[emitted][39m[22m (name: index)
-    asset [1m[32mindex-rtl.css[39m[22m 7.78 KiB [1m[32m[emitted][39m[22m (name: index)
-  asset [1m[32mindex.js[39m[22m 38.8 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: index)
+assets by chunk 54.7 KiB (name: index)
+  assets by path [1m[32m*.css[39m[22m 15.8 KiB
+    asset [1m[32mindex.css[39m[22m 7.92 KiB [1m[32m[emitted][39m[22m (name: index)
+    asset [1m[32mindex-rtl.css[39m[22m 7.91 KiB [1m[32m[emitted][39m[22m (name: index)
+  asset [1m[32mindex.js[39m[22m 38.7 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: index)
   asset [1m[32mindex.asset.php[39m[22m 193 bytes [1m[32m[emitted][39m[22m (name: index)
 assets by path [1m[32m./*.css[39m[22m 1.27 KiB
   asset [1m[32m./style-index-rtl.css[39m[22m 650 bytes [1m[32m[emitted][39m[22m (name: ./style-index) (id hint: style)
   asset [1m[32m./style-index.css[39m[22m 650 bytes [1m[32m[emitted][39m[22m (name: ./style-index) (id hint: style)
-Entrypoint [1msplash-screen/index[39m[22m 4.24 KiB = [1m[32msplash-screen/index.css[39m[22m 418 bytes [1m[32msplash-screen/index.js[39m[22m 3.23 KiB [1m[32msplash-screen/index-rtl.css[39m[22m 418 bytes [1m[32msplash-screen/index.asset.php[39m[22m 194 bytes
-Entrypoint [1mindex[39m[22m 55.8 KiB = 6 assets
-orphan modules 280 KiB (javascript) 3.66 KiB (runtime) [1m[33m[orphan][39m[22m 360 modules
+Entrypoint [1mindex[39m[22m 56 KiB = 6 assets
+orphan modules 275 KiB (javascript) 2.75 KiB (runtime) [1m[33m[orphan][39m[22m 349 modules
 runtime modules 3.07 KiB 5 modules
-built modules 8.82 KiB (css/mini-extract) 59.5 KiB (javascript) [1m[33m[built][39m[22m
-  cacheable modules 8.82 KiB
-    modules by path [1m./src/*.scss[39m[22m 5.45 KiB
-      css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/style.scss[39m[22m 649 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-      css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 4.81 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-    css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/splash-screen/editor.scss[39m[22m 417 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-    css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]![1m../../node_modules/driver.js/dist/driver.css[39m[22m 2.96 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-  javascript modules 59.5 KiB
-    [1m./src/splash-screen/index.js + 11 modules[39m[22m 5.32 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-    [1m./src/index.js + 17 modules[39m[22m 54.1 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 12105 ms
+built modules 8.55 KiB (css/mini-extract) 54 KiB (javascript) [1m[33m[built][39m[22m
+  modules by path [1m./src/*.scss[39m[22m 5.58 KiB
+    css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/style.scss[39m[22m 649 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+    css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 4.95 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  [1m./src/index.js + 17 modules[39m[22m 54 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]![1m../../node_modules/driver.js/dist/driver.css[39m[22m 2.96 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 3015 ms
+assets by chunk 22.5 KiB (name: index)
+  assets by path [1m[32m*.css[39m[22m 9.9 KiB
+    asset [1m[32mindex-rtl.css[39m[22m 4.95 KiB [1m[32m[emitted][39m[22m (name: index)
+    asset [1m[32mindex.css[39m[22m 4.95 KiB [1m[32m[emitted][39m[22m (name: index)
+  asset [1m[32mindex.js[39m[22m 12.4 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: index)
+  asset [1m[32mindex.asset.php[39m[22m 190 bytes [1m[32m[emitted][39m[22m (name: index)
+assets by path [1m[32m./*.css[39m[22m 9.9 KiB
+  asset [1m[32m./style-index-rtl.css[39m[22m 4.95 KiB [1m[32m[emitted][39m[22m (name: ./style-index) (id hint: style)
+  asset [1m[32m./style-index.css[39m[22m 4.95 KiB [1m[32m[emitted][39m[22m (name: ./style-index) (id hint: style)
+Entrypoint [1mindex[39m[22m 32.4 KiB = 6 assets
+orphan modules 35.7 KiB (javascript) 1.83 KiB (runtime) [1m[33m[orphan][39m[22m 29 modules
+runtime modules 3.07 KiB 5 modules
+built modules 22.7 KiB (javascript) 9.9 KiB (css/mini-extract) [1m[33m[built][39m[22m
+  [1m./src/settings/index.tsx + 15 modules[39m[22m 22.7 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/settings/style.scss[39m[22m 4.95 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 4.95 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 1464 ms

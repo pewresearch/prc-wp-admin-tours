@@ -37,17 +37,11 @@ export function isCatalogSplash(tour) {
 }
 
 function getCatalogActions(tour) {
-	const permalink = tour?.splash?.permalink;
-	if (!permalink) {
+	const buttons = tour?.splash?.buttons;
+	if (!Array.isArray(buttons)) {
 		return [];
 	}
-	return [
-		{
-			id: 'release-notes',
-			label: __('Read the release notes', 'prc-wp-admin-tours'),
-			url: permalink,
-		},
-	];
+	return buttons.filter((item) => item?.label && item?.url);
 }
 
 function getFocusable(root) {
@@ -131,22 +125,17 @@ function CatalogBody({ tour, onAction }) {
 		...action,
 		onClick: onAction,
 	}));
-	const html = tour?.splash?.contentHtml || '';
+	const title = tour?.title || __('What’s new', 'prc-wp-admin-tours');
+	const body = tour?.splash?.body || '';
 
 	return (
 		<>
-			{html ? (
-				<div
-					className="prc-wp-admin-tours-welcome__content"
-					// PHP stores this HTML after wp_kses_post().
-					// eslint-disable-next-line react/no-danger
-					dangerouslySetInnerHTML={{ __html: html }}
-				/>
-			) : (
-				<h1 id={TITLE_ID} className="prc-wp-admin-tours-welcome__title">
-					{tour?.title || __('What’s new', 'prc-wp-admin-tours')}
-				</h1>
-			)}
+			<h1 id={TITLE_ID} className="prc-wp-admin-tours-welcome__title">
+				{title}
+			</h1>
+			{body ? (
+				<p className="prc-wp-admin-tours-welcome__body">{body}</p>
+			) : null}
 			{actions.length > 0 ? (
 				<div className="prc-wp-admin-tours-welcome__actions">
 					{actions.map((action, index) => (
@@ -166,7 +155,7 @@ function CatalogBody({ tour, onAction }) {
 	);
 }
 
-function WelcomeSplash({ tour, onDismissed }) {
+function WelcomeSplash({ tour, onDismissed, preview }) {
 	const dialogRef = useRef(null);
 	const exitIntentRef = useRef(null);
 	const catalog = isCatalogSplash(tour);
@@ -227,13 +216,15 @@ function WelcomeSplash({ tour, onDismissed }) {
 			return;
 		}
 		exitIntentRef.current = 'skip';
-		try {
-			await saveProgress({
-				tourId: tour.id,
-				status: 'dismissed',
-			});
-		} catch {
-			// Still close so the user is not trapped.
+		if (!preview) {
+			try {
+				await saveProgress({
+					tourId: tour.id,
+					status: 'dismissed',
+				});
+			} catch {
+				// Still close so the user is not trapped.
+			}
 		}
 		await leave(onDismissed);
 	};
@@ -243,6 +234,10 @@ function WelcomeSplash({ tour, onDismissed }) {
 			return;
 		}
 		exitIntentRef.current = 'action';
+		if (preview) {
+			await leave(onDismissed);
+			return;
+		}
 		try {
 			await saveProgress({
 				tourId: tour.id,
@@ -280,8 +275,7 @@ function WelcomeSplash({ tour, onDismissed }) {
 			className="prc-wp-admin-tours-welcome"
 			role="dialog"
 			aria-modal="true"
-			aria-labelledby={catalog ? undefined : TITLE_ID}
-			aria-label={catalog ? tour.title : undefined}
+			aria-labelledby={TITLE_ID}
 		>
 			<div className="prc-wp-admin-tours-welcome__inner">
 				<SplashLogo showLogo={tour?.splash?.showLogo} />
@@ -339,16 +333,15 @@ function WelcomeBodyWithActions({ actions }) {
 }
 
 export function unmountWelcome() {
-	if (!welcomeRoot) {
-		return;
+	if (welcomeRoot) {
+		welcomeRoot.unmount();
+		welcomeRoot = null;
 	}
-	welcomeRoot.unmount();
-	welcomeRoot = null;
 	document.getElementById(ROOT_ID)?.remove();
 	setAdminInert(false);
 }
 
-export function mountWelcome(tour, { onDismissed } = {}) {
+export function mountWelcome(tour, { onDismissed, preview } = {}) {
 	if (!tour?.id) {
 		return;
 	}
@@ -363,5 +356,11 @@ export function mountWelcome(tour, { onDismissed } = {}) {
 	}
 
 	welcomeRoot = createRoot(node);
-	welcomeRoot.render(<WelcomeSplash tour={tour} onDismissed={onDismissed} />);
+	welcomeRoot.render(
+		<WelcomeSplash
+			tour={tour}
+			onDismissed={onDismissed}
+			preview={Boolean(preview)}
+		/>
+	);
 }

@@ -104,14 +104,9 @@ class Tour_Parser {
 			return null;
 		}
 
-		$content_html = isset( $raw['contentHtml'] ) ? (string) $raw['contentHtml'] : '';
-		if ( function_exists( 'wp_kses_post' ) ) {
-			$content_html = wp_kses_post( $content_html );
-		}
-
-		$permalink = isset( $raw['permalink'] ) ? (string) $raw['permalink'] : '';
-		if ( '' !== $permalink && function_exists( 'esc_url_raw' ) ) {
-			$permalink = esc_url_raw( $permalink );
+		$body = isset( $raw['body'] ) ? (string) $raw['body'] : '';
+		if ( function_exists( 'sanitize_textarea_field' ) ) {
+			$body = sanitize_textarea_field( $body );
 		}
 
 		$published_at = isset( $raw['publishedAt'] ) ? (int) $raw['publishedAt'] : 0;
@@ -120,11 +115,56 @@ class Tour_Parser {
 		}
 
 		return array(
-			'contentHtml' => $content_html,
-			'permalink'   => $permalink,
+			'body'        => $body,
+			'buttons'     => self::parse_splash_buttons( $raw['buttons'] ?? array() ),
 			'showLogo'    => ! array_key_exists( 'showLogo', $raw ) || ! empty( $raw['showLogo'] ),
 			'publishedAt' => $published_at,
 		);
+	}
+
+	/**
+	 * Parse overlay buttons.
+	 *
+	 * @param mixed $raw Raw buttons.
+	 * @return array<int, array{id: string, label: string, url: string}>
+	 */
+	public static function parse_splash_buttons( $raw ): array {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+
+		$buttons = array();
+		foreach ( $raw as $index => $item ) {
+			if ( count( $buttons ) >= Splash_Catalog::MAX_BUTTONS ) {
+				break;
+			}
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$label = isset( $item['label'] ) ? sanitize_text_field( (string) $item['label'] ) : '';
+			$url   = isset( $item['url'] ) ? (string) $item['url'] : '';
+			if ( '' !== $url && function_exists( 'esc_url_raw' ) ) {
+				$url = esc_url_raw( $url );
+			}
+
+			if ( '' === $label || '' === $url ) {
+				continue;
+			}
+
+			$id = isset( $item['id'] ) ? sanitize_key( (string) $item['id'] ) : '';
+			if ( '' === $id ) {
+				$id = 'button-' . (string) $index;
+			}
+
+			$buttons[] = array(
+				'id'    => $id,
+				'label' => $label,
+				'url'   => $url,
+			);
+		}
+
+		return $buttons;
 	}
 
 	/**
