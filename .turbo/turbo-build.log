@@ -1,5 +1,5 @@
 
-> @prc/wp-admin-tours@1.2.0 build
+> @prc/wp-admin-tours@1.3.0 build
 > wp-scripts build && wp-scripts build --config webpack.settings.config.js
 
 assets by chunk 54.7 KiB (name: index)
@@ -20,7 +20,7 @@ built modules 8.55 KiB (css/mini-extract) 54 KiB (javascript) [1m[33m[built][
     css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 4.95 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   [1m./src/index.js + 17 modules[39m[22m 54 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]![1m../../node_modules/driver.js/dist/driver.css[39m[22m 2.96 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 3015 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 1968 ms
 assets by chunk 22.5 KiB (name: index)
   assets by path [1m[32m*.css[39m[22m 9.9 KiB
     asset [1m[32mindex-rtl.css[39m[22m 4.95 KiB [1m[32m[emitted][39m[22m (name: index)
@@ -37,4 +37,4 @@ built modules 22.7 KiB (javascript) 9.9 KiB (css/mini-extract) [1m[33m[built]
   [1m./src/settings/index.tsx + 15 modules[39m[22m 22.7 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/settings/style.scss[39m[22m 4.95 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 4.95 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 1464 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 1303 ms
