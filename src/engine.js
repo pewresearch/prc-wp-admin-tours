@@ -37,6 +37,7 @@ export {
 	shouldAutoStart,
 	stepVisibleOn,
 	visibleSteps,
+	welcomeNeedsSetup,
 } from './screen';
 
 export function stopActiveTour() {
@@ -307,7 +308,12 @@ export function startMatchingTours(tours, progressMap) {
 	}
 
 	const current = detectScreen();
-	const tour = findAutoStartTour(tours, progressMap, current);
+	const tour = findAutoStartTour(
+		tours,
+		progressMap,
+		current,
+		window.prcWpAdminTours?.welcome
+	);
 	if (!tour) {
 		return;
 	}

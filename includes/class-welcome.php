@@ -15,6 +15,8 @@ namespace PRC\Platform\Wp_Admin_Tours;
 class Welcome {
 	public const TOUR_ID = 'prc-wp-admin-tours/welcome';
 
+	private const VERSION = 1;
+
 	/**
 	 * Constructor.
 	 *
@@ -22,6 +24,31 @@ class Welcome {
 	 */
 	public function __construct( Loader $loader ) {
 		$loader->add_action( Tour_Registry::ACTION_REGISTER, $this, 'register_tours', 5 );
+		$loader->add_action( 'init', $this, 'register_setup_meta' );
+	}
+
+	/**
+	 * Expose acknowledged setup field ids in REST so a user's setup step can be reset.
+	 */
+	public function register_setup_meta(): void {
+		register_meta(
+			'user',
+			Setup_Fields::ACKNOWLEDGED_META_KEY,
+			array(
+				'type'              => 'array',
+				'single'            => true,
+				'default'           => array(),
+				'sanitize_callback' => static function ( $value ): array {
+					return is_array( $value ) ? array_values( array_filter( array_map( 'sanitize_key', $value ) ) ) : array();
+				},
+				'show_in_rest'      => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array( 'type' => 'string' ),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -46,7 +73,7 @@ class Welcome {
 		return array(
 			'id'         => self::TOUR_ID,
 			'title'      => __( 'Welcome to PRC Platform', 'prc-wp-admin-tours' ),
-			'version'    => 1,
+			'version'    => self::VERSION,
 			'autoStart'  => true,
 			'capability' => 'edit_posts',
 			'mode'       => 'splash',
@@ -72,10 +99,17 @@ class Welcome {
 	 * @return array<string, mixed>
 	 */
 	public static function payload(): array {
+		$progress = Progress::get_tour( (int) get_current_user_id(), self::TOUR_ID, self::VERSION );
+
 		return array(
-			'logoUrl'     => content_url( 'images/logos/primary-light.svg' ),
-			'logoDarkUrl' => content_url( 'images/logos/primary-white.svg' ),
-			'actions'     => self::actions(),
+			'logoUrl'           => content_url( 'images/logos/primary-light.svg' ),
+			'logoDarkUrl'       => content_url( 'images/logos/primary-white.svg' ),
+			'actions'           => self::actions(),
+			'setupFields'       => Setup_Fields::incomplete_for( wp_get_current_user() ),
+			'setupSnoozedUntil' => (int) ( $progress['snoozedUntil'] ?? 0 ),
+			'now'               => time(),
+			'setupUrl'          => rest_url( 'prc-api/v3/wp-admin-tours/setup' ),
+			'slackUrl'          => rest_url( 'prc-slack/v1/connect-user' ),
 		);
 	}
 

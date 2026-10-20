@@ -82,7 +82,8 @@ class Progress {
 	 * Merge incoming progress into the stored value.
 	 *
 	 * Completed and dismissed at the current version stay unless reset.
-	 * Applying the same write twice is a no-op.
+	 * Applying the same write twice is a no-op. A stored `snoozedUntil`
+	 * carries over until a write replaces it or the tour is reset.
 	 *
 	 * @param array<string, mixed> $current  Stored progress.
 	 * @param array<string, mixed> $incoming Incoming write.
@@ -107,6 +108,10 @@ class Progress {
 			return $current;
 		}
 
+		$snoozed_until = isset( $incoming['snoozedUntil'] )
+			? (int) $incoming['snoozedUntil']
+			: (int) ( $current['snoozedUntil'] ?? 0 );
+
 		if ( 'in_progress' === $status ) {
 			$step_index = isset( $incoming['stepIndex'] ) ? (int) $incoming['stepIndex'] : 0;
 			if ( $step_index < 0 ) {
@@ -118,14 +123,16 @@ class Progress {
 				'stepIndex' => $step_index,
 				'version'   => $version,
 			);
-
-			return $next === $current ? $current : $next;
+		} else {
+			$next = array(
+				'status'  => $status,
+				'version' => $version,
+			);
 		}
 
-		$next = array(
-			'status'  => $status,
-			'version' => $version,
-		);
+		if ( $snoozed_until > 0 ) {
+			$next['snoozedUntil'] = $snoozed_until;
+		}
 
 		return $next === $current ? $current : $next;
 	}
@@ -160,23 +167,30 @@ class Progress {
 				$step_index = 0;
 			}
 
-			return array(
+			$entry = array(
 				'status'    => 'in_progress',
 				'stepIndex' => $step_index,
 				'version'   => $stored_version,
 			);
+		} else {
+			$entry = array(
+				'status'  => $status,
+				'version' => $stored_version,
+			);
 		}
 
-		return array(
-			'status'  => $status,
-			'version' => $stored_version,
-		);
+		$snoozed_until = isset( $raw['snoozedUntil'] ) ? (int) $raw['snoozedUntil'] : 0;
+		if ( $snoozed_until > 0 ) {
+			$entry['snoozedUntil'] = $snoozed_until;
+		}
+
+		return $entry;
 	}
 
 	/**
 	 * Progress map for the tours being localized.
 	 *
-	 * @param int                         $user_id User id.
+	 * @param int                              $user_id User id.
 	 * @param array<int, array<string, mixed>> $tours Parsed tours.
 	 * @return array<string, array<string, mixed>>
 	 */
@@ -196,9 +210,9 @@ class Progress {
 	/**
 	 * Write or delete one tour key in the progress map.
 	 *
-	 * @param int                        $user_id User id.
-	 * @param string                     $tour_id Tour id.
-	 * @param array<string, mixed>|null  $entry   Entry to store, or null to delete.
+	 * @param int                       $user_id User id.
+	 * @param string                    $tour_id Tour id.
+	 * @param array<string, mixed>|null $entry   Entry to store, or null to delete.
 	 */
 	private static function write_entry( int $user_id, string $tour_id, ?array $entry ): void {
 		$all = self::get_all( $user_id );

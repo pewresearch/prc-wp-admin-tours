@@ -118,14 +118,55 @@ export function isSplashTour(tour) {
 	return tour?.mode === 'splash';
 }
 
-export function findAutoStartTour(tours, progressMap, current) {
+export const WELCOME_TOUR_ID = 'prc-wp-admin-tours/welcome';
+
+function hasSetupFields(welcome) {
+	return (
+		Array.isArray(welcome?.setupFields) && welcome.setupFields.length > 0
+	);
+}
+
+/**
+ * Whether the welcome splash should reopen for its setup step: at least one
+ * setup field is incomplete and the server-set snooze has passed. Both times
+ * come from the server so the user's clock does not matter.
+ *
+ * @param {Object} welcome Localized welcome payload.
+ * @return {boolean} True when the setup step should show.
+ */
+export function welcomeNeedsSetup(welcome) {
+	if (!hasSetupFields(welcome)) {
+		return false;
+	}
+	const now = Number(welcome.now) || 0;
+	const snoozedUntil = Number(welcome.setupSnoozedUntil) || 0;
+	return now >= snoozedUntil;
+}
+
+function shouldAutoStartSplash(tour, progress, current, welcome) {
+	if (tour.id !== WELCOME_TOUR_ID || !hasSetupFields(welcome)) {
+		return shouldAutoStart(tour, progress, current);
+	}
+	return (
+		Boolean(tour.autoStart) &&
+		visibleSteps(tour, current).length > 0 &&
+		welcomeNeedsSetup(welcome)
+	);
+}
+
+export function findAutoStartTour(tours, progressMap, current, welcome) {
 	if (!Array.isArray(tours)) {
 		return null;
 	}
 	const splash = tours.find(
 		(tour) =>
 			isSplashTour(tour) &&
-			shouldAutoStart(tour, progressMap?.[tour.id], current)
+			shouldAutoStartSplash(
+				tour,
+				progressMap?.[tour.id],
+				current,
+				welcome
+			)
 	);
 	if (splash) {
 		return splash;

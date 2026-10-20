@@ -81,6 +81,7 @@ class Bootstrap {
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-screen.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-rest-controller.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-assets.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-setup-fields.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-welcome.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-settings.php';
 	}

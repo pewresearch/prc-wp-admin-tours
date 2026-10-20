@@ -14,6 +14,7 @@
 	align-items: center;
 	justify-content: center;
 	padding: 32px 24px;
+	overflow-y: auto;
 	background: var(--prc-welcome-bg);
 	color: var(--prc-welcome-fg);
 	color-scheme: light;
@@ -43,6 +44,8 @@
 	flex-direction: column;
 	align-items: center;
 	max-width: 36rem;
+	// Auto margins center the content but let it scroll when it is taller than the viewport.
+	margin: auto 0;
 	text-align: center;
 }
 
@@ -182,6 +185,179 @@
 	}
 }
 
+.prc-wp-admin-tours-welcome__slack-connect.components-button {
+	gap: 8px;
+	align-items: center;
+}
+
+.prc-wp-admin-tours-welcome__slack-icon {
+	display: inline-flex;
+	line-height: 0;
+
+	svg {
+		fill: currentColor;
+	}
+}
+
+.prc-wp-admin-tours-welcome__setup {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: min(26rem, 100%);
+}
+
+.prc-wp-admin-tours-welcome__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+	max-width: 26rem;
+	margin-top: 20px;
+	margin-inline: auto;
+	text-align: center;
+	animation: prc-welcome-rise 0.55s ease 0.78s both;
+}
+
+.prc-wp-admin-tours-welcome__field {
+	.components-base-control__label,
+	.prc-wp-admin-tours-welcome__field-label {
+		margin: 0 0 8px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--prc-welcome-fg);
+	}
+
+	.components-text-control__input,
+	.components-select-control__input {
+		text-align: start;
+		border-radius: 2px;
+		border-color: var(--prc-welcome-outline);
+		background: transparent;
+		color: var(--prc-welcome-fg);
+
+		&:focus {
+			border-color: var(--prc-welcome-fg);
+			box-shadow: 0 0 0 1px var(--prc-welcome-fg);
+		}
+	}
+
+	.components-base-control__help,
+	.prc-wp-admin-tours-welcome__field-help {
+		margin: 6px 0 0;
+		font-size: 0.85rem;
+		color: var(--prc-welcome-muted);
+	}
+
+	.prc-wp-admin-tours-welcome__field-help {
+		margin: 0 0 10px;
+	}
+
+	.components-toggle-control .components-toggle-control__label,
+	.components-toggle-control label {
+		color: var(--prc-welcome-fg);
+		font-weight: 600;
+	}
+
+	.components-toggle-control .components-flex {
+		justify-content: center;
+	}
+
+	// The label is a FlexBlock that would stretch and push the switch to the edge.
+	.components-toggle-control .components-toggle-control__label {
+		flex: 0 1 auto;
+	}
+
+	.components-toggle-control .components-base-control__help {
+		margin-inline-start: 0;
+	}
+}
+
+.prc-wp-admin-tours-welcome__name-parts {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+	gap: 12px;
+	margin-bottom: 12px;
+
+	&:empty {
+		display: none;
+	}
+}
+
+.prc-wp-admin-tours-welcome__preferences {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.prc-wp-admin-tours-welcome__preference {
+	display: grid;
+	grid-template-columns: minmax(0, 15rem) 8.5rem;
+	gap: 16px;
+	align-items: center;
+	justify-content: center;
+
+	@media (max-width: 480px) {
+		grid-template-columns: minmax(0, 1fr);
+		justify-items: center;
+	}
+}
+
+.prc-wp-admin-tours-welcome__illustration {
+	display: block;
+	width: 100%;
+	max-width: 8.5rem;
+	height: auto;
+	margin-inline: auto;
+
+	.is-frame {
+		fill: transparent;
+		stroke: var(--prc-welcome-outline);
+		stroke-width: 1.5;
+	}
+
+	.is-chrome {
+		fill: var(--prc-welcome-outline-hover-bg);
+		stroke: var(--prc-welcome-outline);
+		stroke-width: 1;
+	}
+
+	.is-toolbar {
+		fill: var(--prc-welcome-bg);
+		stroke: var(--prc-welcome-fg);
+		stroke-width: 1;
+	}
+
+	.is-tool,
+	.is-line {
+		fill: var(--prc-welcome-muted);
+	}
+
+	.is-selected {
+		fill: transparent;
+		stroke: var(--prc-welcome-fg);
+		stroke-width: 1;
+		stroke-dasharray: 3 2;
+	}
+}
+
+.prc-wp-admin-tours-welcome__field-status {
+	margin: 8px 0 0;
+	font-size: 0.875rem;
+	color: var(--prc-welcome-fg);
+
+	&.is-error {
+		color: #cc1818;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	.prc-wp-admin-tours-welcome__field-status.is-error {
+		color: #f86368;
+	}
+}
+
 .prc-wp-admin-tours-welcome__skip.components-button.is-link {
 	margin-top: 28px;
 	color: var(--prc-welcome-muted);
@@ -244,6 +420,7 @@
 	.prc-wp-admin-tours-welcome__body,
 	.prc-wp-admin-tours-welcome__prompt,
 	.prc-wp-admin-tours-welcome__actions,
+	.prc-wp-admin-tours-welcome__fields,
 	.prc-wp-admin-tours-welcome__content,
 	.prc-wp-admin-tours-welcome__skip.components-button.is-link {
 		animation: none;

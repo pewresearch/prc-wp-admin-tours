@@ -2,13 +2,14 @@
  * WordPress Dependencies
  */
 import { Button } from '@wordpress/components';
-import { createRoot, useEffect, useRef } from '@wordpress/element';
+import { createRoot, useEffect, useRef, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Internal Dependencies
  */
 import { saveProgress } from './progress';
+import { getSetupFields, SetupStep } from './welcome-setup';
 import './welcome.scss';
 
 const ROOT_ID = 'prc-wp-admin-tours-welcome';
@@ -50,7 +51,7 @@ function getFocusable(root) {
 	}
 	return Array.from(
 		root.querySelectorAll(
-			'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+			'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
 		)
 	).filter((node) => !node.hasAttribute('disabled'));
 }
@@ -160,14 +161,28 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 	const exitIntentRef = useRef(null);
 	const catalog = isCatalogSplash(tour);
 	const actions = catalog ? getCatalogActions(tour) : getWelcomeActions();
+	const [setupFields] = useState(() => (catalog ? [] : getSetupFields()));
+	const [step, setStep] = useState(() =>
+		setupFields.length > 0 ? 'setup' : 'actions'
+	);
+	// A ref because the Escape handler is bound once on mount.
+	const setupIncompleteRef = useRef(setupFields.length > 0);
+	const firstStepRef = useRef(true);
+
+	useEffect(() => {
+		if (firstStepRef.current) {
+			firstStepRef.current = false;
+			return;
+		}
+		getFocusable(dialogRef.current)[0]?.focus();
+	}, [step]);
 
 	useEffect(() => {
 		setAdminInert(true);
 		const dialog = dialogRef.current;
 		const ownerDocument = dialog?.ownerDocument;
 		const previouslyFocused = ownerDocument?.activeElement;
-		const focusable = getFocusable(dialog);
-		focusable[0]?.focus();
+		getFocusable(dialog)[0]?.focus();
 
 		const onKeyDown = (event) => {
 			if (event.key === 'Escape') {
@@ -175,6 +190,7 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 				void handleSkip();
 				return;
 			}
+			const focusable = getFocusable(dialog);
 			if (event.key !== 'Tab' || focusable.length === 0) {
 				return;
 			}
@@ -221,6 +237,7 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 				await saveProgress({
 					tourId: tour.id,
 					status: 'dismissed',
+					snooze: setupIncompleteRef.current,
 				});
 			} catch {
 				// Still close so the user is not trapped.
@@ -242,6 +259,7 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 			await saveProgress({
 				tourId: tour.id,
 				status: 'completed',
+				snooze: setupIncompleteRef.current,
 			});
 		} catch {
 			// Navigate anyway.
@@ -251,6 +269,7 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 				await saveProgress({
 					tourId: tour.id,
 					status: 'dismissed',
+					snooze: setupIncompleteRef.current,
 				});
 			} catch {
 				// Skip already persisted dismissed.
@@ -282,7 +301,15 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 				{catalog ? (
 					<CatalogBody tour={tour} onAction={handleAction} />
 				) : (
-					<WelcomeBodyWithActions actions={welcomeActions} />
+					<WelcomeBodyWithActions
+						actions={welcomeActions}
+						step={step}
+						setupFields={setupFields}
+						onSetupDone={(remaining) => {
+							setupIncompleteRef.current = remaining.length > 0;
+							setStep('actions');
+						}}
+					/>
 				)}
 				<Button
 					className="prc-wp-admin-tours-welcome__skip"
@@ -296,7 +323,7 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 	);
 }
 
-function WelcomeBodyWithActions({ actions }) {
+function WelcomeBodyWithActions({ actions, step, setupFields, onSetupDone }) {
 	return (
 		<>
 			<h1 id={TITLE_ID} className="prc-wp-admin-tours-welcome__title">
@@ -305,7 +332,10 @@ function WelcomeBodyWithActions({ actions }) {
 			<p className="prc-wp-admin-tours-welcome__tagline">
 				{__('WordPress, at enterprise scale.', 'prc-wp-admin-tours')}
 			</p>
-			{actions.length > 0 ? (
+			{'setup' === step ? (
+				<SetupStep fields={setupFields} onDone={onSetupDone} />
+			) : null}
+			{'actions' === step && actions.length > 0 ? (
 				<>
 					<p className="prc-wp-admin-tours-welcome__prompt">
 						{__(

@@ -32,7 +32,7 @@ export function getProgress(tourId) {
 	return stored;
 }
 
-export async function saveProgress({ tourId, status, stepIndex }) {
+export async function saveProgress({ tourId, status, stepIndex, snooze }) {
 	if (isTerminal(getProgress(tourId)) && status === 'in_progress') {
 		return getProgress(tourId);
 	}
@@ -41,6 +41,9 @@ export async function saveProgress({ tourId, status, stepIndex }) {
 	const data = { tourId, status };
 	if (typeof stepIndex === 'number') {
 		data.stepIndex = stepIndex;
+	}
+	if (snooze) {
+		data.snooze = true;
 	}
 
 	const boot = getBoot();
