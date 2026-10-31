@@ -23,7 +23,7 @@ built modules 12.2 KiB (css/mini-extract) 74.5 KiB (javascript) [1m[33m[built]
     css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 8.63 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   [1m./src/index.js + 23 modules[39m[22m 74.5 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]![1m../../node_modules/driver.js/dist/driver.css[39m[22m 2.96 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 12561 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 9310 ms
 Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
   npx update-browserslist-db@latest
   Why you should do it regularly: https://github.com/browserslist/update-db#readme
@@ -43,4 +43,4 @@ built modules 42 KiB (javascript) 17.3 KiB (css/mini-extract) [1m[33m[built][
   [1m./src/settings/index.tsx + 21 modules[39m[22m 42 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/settings/style.scss[39m[22m 8.63 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 8.63 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 7845 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 6981 ms
