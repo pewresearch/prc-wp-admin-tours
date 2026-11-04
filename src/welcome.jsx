@@ -29,8 +29,8 @@ function getWelcomeActions() {
 	return Array.isArray(actions) ? actions.filter((item) => item?.url) : [];
 }
 
-export function hasWelcomeActions() {
-	return getWelcomeActions().length > 0;
+export function hasWelcomeContent() {
+	return getWelcomeActions().length > 0 || getSetupFields().length > 0;
 }
 
 export function isCatalogSplash(tour) {
@@ -307,6 +307,10 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 						setupFields={setupFields}
 						onSetupDone={(remaining) => {
 							setupIncompleteRef.current = remaining.length > 0;
+							if (actions.length === 0) {
+								void handleSkip();
+								return;
+							}
 							setStep('actions');
 						}}
 					/>

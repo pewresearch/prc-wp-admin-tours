@@ -24,6 +24,7 @@ import {
 	nameInitialValue,
 	nameSubmitValue,
 } from './setup-fields/name-field';
+import { PopupConnectField } from './setup-fields/popup-connect-field';
 
 export function getSetupFields() {
 	const fields = window.prcWpAdminTours?.welcome?.setupFields;
@@ -144,6 +145,15 @@ function SetupField({ field, value, error, onChange }) {
 			);
 		case 'slack_connect':
 			return <SlackConnectControl field={field} />;
+		case 'popup_connect':
+			return (
+				<PopupConnectField
+					field={field}
+					value={value}
+					error={error}
+					onChange={onChange}
+				/>
+			);
 		default:
 			// Field types registered in PHP without a renderer here are skipped.
 			return null;
@@ -165,6 +175,7 @@ function initialValue(field) {
 		case 'editor_preferences':
 			return editorPreferencesInitialValue(field);
 		case 'slack_connect':
+		case 'popup_connect':
 		default:
 			return undefined;
 	}

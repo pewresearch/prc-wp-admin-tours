@@ -21,7 +21,7 @@ import {
 	visibleSteps,
 } from './screen';
 import {
-	hasWelcomeActions,
+	hasWelcomeContent,
 	isCatalogSplash,
 	mountWelcome,
 	unmountWelcome,
@@ -319,7 +319,7 @@ export function startMatchingTours(tours, progressMap) {
 	}
 
 	if (isSplashTour(tour)) {
-		if (!isCatalogSplash(tour) && !hasWelcomeActions()) {
+		if (!isCatalogSplash(tour) && !hasWelcomeContent()) {
 			startMatchingTours(remainingTours(tours, tour.id), progressMap);
 			return;
 		}

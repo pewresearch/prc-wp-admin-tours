@@ -15,6 +15,11 @@ namespace PRC\Platform\Wp_Admin_Tours;
 class Welcome {
 	public const TOUR_ID = 'prc-wp-admin-tours/welcome';
 
+	/**
+	 * Every role, subscribers included, needs the splash to set a display name and connect Slack.
+	 */
+	public const CAPABILITY = 'read';
+
 	private const VERSION = 1;
 
 	/**
@@ -75,7 +80,7 @@ class Welcome {
 			'title'      => __( 'Welcome to PRC Platform', 'prc-wp-admin-tours' ),
 			'version'    => self::VERSION,
 			'autoStart'  => true,
-			'capability' => 'edit_posts',
+			'capability' => self::CAPABILITY,
 			'mode'       => 'splash',
 			'screens'    => array(
 				array(

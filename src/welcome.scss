@@ -352,6 +352,24 @@
 	}
 }
 
+.prc-wp-admin-tours-welcome__decline.components-button.is-link {
+	margin-top: 10px;
+	color: var(--prc-welcome-muted);
+	font-size: 0.875rem;
+	text-decoration: none;
+
+	&:hover,
+	&:focus {
+		color: var(--prc-welcome-fg);
+		text-decoration: underline;
+	}
+}
+
+.prc-wp-admin-tours-welcome__field-status
+	.prc-wp-admin-tours-welcome__decline.components-button.is-link {
+	margin-top: 0;
+}
+
 @media (prefers-color-scheme: dark) {
 	.prc-wp-admin-tours-welcome__field-status.is-error {
 		color: #f86368;

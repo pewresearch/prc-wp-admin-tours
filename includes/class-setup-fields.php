@@ -28,6 +28,10 @@ use WP_User;
  *   dropdown; the value is `{ first_name, last_name, display_name }`.
  * - `editor_preferences`: block editor toggles; the value is
  *   `{ fixedToolbar: bool, distractionFree: bool }`.
+ * - `popup_connect`: a button that opens a sign-in popup and waits for
+ *   `{ status, message }` on a BroadcastChannel. The `value` callback returns
+ *   `{ url, channel, buttonLabel, declineLabel }`. The only submitted value is
+ *   `'declined'`, from the optional decline link; the popup stores its own result.
  */
 class Setup_Fields {
 	public const FILTER = 'prc_wp_admin_tours_setup_fields';
