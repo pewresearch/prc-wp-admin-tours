@@ -6,6 +6,11 @@ import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
+ * External Dependencies
+ */
+import { Icon } from '@prc/icons';
+
+/**
  * Internal Dependencies
  */
 import { FieldError } from './field-error';
@@ -16,7 +21,8 @@ export const DECLINED = 'declined';
  * Opens a sign-in popup and waits for its result on a BroadcastChannel,
  * because a cross-origin OAuth round trip can sever `window.opener`.
  *
- * `field.value` is `{ url, channel, buttonLabel, declineLabel }`. The popup
+ * `field.value` is `{ url, channel, buttonLabel, declineLabel, icon }`. `icon`
+ * is an optional brand icon slug from the PRC icon library. The popup
  * posts `{ status: 'success' | 'error', message }` on `channel`. When
  * `declineLabel` is set, a link submits the value `'declined'`.
  *
@@ -27,7 +33,7 @@ export const DECLINED = 'declined';
  * @param {Function} props.onChange Value setter.
  */
 export function PopupConnectField({ field, value, error, onChange }) {
-	const { url, channel, buttonLabel, declineLabel } = field.value || {};
+	const { url, channel, buttonLabel, declineLabel, icon } = field.value || {};
 	const [state, setState] = useState({ status: 'idle', message: '' });
 	const waiting = 'waiting' === state.status;
 
@@ -79,7 +85,7 @@ export function PopupConnectField({ field, value, error, onChange }) {
 	const connected = 'connected' === state.status;
 
 	return (
-		<div className="prc-wp-admin-tours-welcome__field">
+		<div className="prc-wp-admin-tours-welcome__field prc-wp-admin-tours-welcome__field--stacked">
 			<p className="prc-wp-admin-tours-welcome__field-label">
 				{field.label}
 			</p>
@@ -90,12 +96,20 @@ export function PopupConnectField({ field, value, error, onChange }) {
 			) : null}
 			{connected || declined ? null : (
 				<Button
-					className="prc-wp-admin-tours-welcome__action"
+					className="prc-wp-admin-tours-welcome__action prc-wp-admin-tours-welcome__slack-connect"
 					variant="secondary"
 					__next40pxDefaultSize
 					disabled={!url}
 					onClick={open}
 				>
+					{icon ? (
+						<Icon
+							icon={icon}
+							library="brands"
+							size="1.125em"
+							className="prc-wp-admin-tours-welcome__slack-icon"
+						/>
+					) : null}
 					{buttonLabel || __('Connect', 'prc-wp-admin-tours')}
 				</Button>
 			)}

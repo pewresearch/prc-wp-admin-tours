@@ -30,7 +30,8 @@ use WP_User;
  *   `{ fixedToolbar: bool, distractionFree: bool }`.
  * - `popup_connect`: a button that opens a sign-in popup and waits for
  *   `{ status, message }` on a BroadcastChannel. The `value` callback returns
- *   `{ url, channel, buttonLabel, declineLabel }`. The only submitted value is
+ *   `{ url, channel, buttonLabel, declineLabel, icon }`, where `icon` is an
+ *   optional PRC brand icon slug. The only submitted value is
  *   `'declined'`, from the optional decline link; the popup stores its own result.
  */
 class Setup_Fields {

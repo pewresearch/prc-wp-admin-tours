@@ -185,6 +185,13 @@
 	}
 }
 
+// Stack the connect button and the decline link vertically.
+.prc-wp-admin-tours-welcome__field--stacked {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
 .prc-wp-admin-tours-welcome__slack-connect.components-button {
 	gap: 8px;
 	align-items: center;
