@@ -189,6 +189,13 @@ class REST_Controller {
 			(int) $tour['version']
 		);
 
+		if (
+			Welcome::TOUR_ID === $tour_id
+			&& in_array( $incoming['status'], array( 'completed', 'dismissed' ), true )
+		) {
+			Setup_Fields::clear_review( wp_get_current_user() );
+		}
+
 		return rest_ensure_response(
 			array(
 				'tourId'   => $tour_id,

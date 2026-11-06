@@ -84,6 +84,7 @@ class Bootstrap {
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-setup-fields.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-welcome.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-settings.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-restart-onboarding.php';
 	}
 
 	/**
@@ -98,6 +99,7 @@ class Bootstrap {
 		new Settings( $this->get_loader() );
 		new REST_Controller( $this->get_loader(), $this->registry );
 		new Assets( $this->get_loader(), $this->registry );
+		new Restart_Onboarding( $this->get_loader(), $this->registry );
 	}
 
 	/**

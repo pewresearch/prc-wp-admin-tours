@@ -17,6 +17,8 @@ use WP_User;
  *
  * Each field is an array with `id`, `label`, `description`, `type`,
  * optional `capability`, an `is_complete` callback that receives a WP_User,
+ * an optional `is_applicable` callback that receives a WP_User and hides the
+ * field, even in review mode, when it returns false,
  * an optional `save` callback that receives a WP_User and the submitted value
  * and returns true or WP_Error, and an optional `value` callback that receives
  * a WP_User and returns the data the browser uses to prefill the control.
@@ -45,6 +47,12 @@ class Setup_Fields {
 	 * User meta that lists the field ids a user has saved at least once.
 	 */
 	public const ACKNOWLEDGED_META_KEY = 'prc_wp_admin_tours_setup_acknowledged';
+
+	/**
+	 * User meta that, while set, makes the welcome splash list every setup
+	 * field, including complete ones. "Restart Onboarding" sets it.
+	 */
+	public const REVIEW_META_KEY = 'prc_wp_admin_tours_setup_review';
 
 	/**
 	 * Scope in core's persisted block editor preferences.
@@ -90,16 +98,71 @@ class Setup_Fields {
 	 * @return array<int, array<string, mixed>>
 	 */
 	public static function incomplete_for( $user ): array {
+		return self::client_fields( $user, false );
+	}
+
+	/**
+	 * Client-safe definitions the welcome splash should show this user.
+	 *
+	 * Every field the user may see while review mode is on. Otherwise only the
+	 * incomplete ones.
+	 *
+	 * @param WP_User|null $user User.
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function for_user( $user ): array {
+		return self::client_fields( $user, self::is_review( $user ) );
+	}
+
+	/**
+	 * Whether review mode is on for the user.
+	 *
+	 * @param WP_User|null $user User.
+	 */
+	public static function is_review( $user ): bool {
+		return $user instanceof WP_User
+			&& $user->ID > 0
+			&& '' !== (string) get_user_meta( $user->ID, self::REVIEW_META_KEY, true );
+	}
+
+	/**
+	 * Turn review mode on, so the splash lists every setup field.
+	 *
+	 * @param WP_User $user User.
+	 */
+	public static function set_review( WP_User $user ): void {
+		update_user_meta( $user->ID, self::REVIEW_META_KEY, '1' );
+	}
+
+	/**
+	 * Turn review mode off.
+	 *
+	 * @param WP_User|null $user User.
+	 */
+	public static function clear_review( $user ): void {
+		if ( $user instanceof WP_User && $user->ID > 0 ) {
+			delete_user_meta( $user->ID, self::REVIEW_META_KEY );
+		}
+	}
+
+	/**
+	 * Build client-safe field definitions.
+	 *
+	 * @param WP_User|null $user             User.
+	 * @param bool         $include_complete Whether complete fields are listed too.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function client_fields( $user, bool $include_complete ): array {
 		if ( ! $user instanceof WP_User || $user->ID <= 0 ) {
 			return array();
 		}
 
-		$incomplete = array();
+		$listed = array();
 		foreach ( self::fields() as $field ) {
 			if ( ! self::user_can( $user, $field ) ) {
 				continue;
 			}
-			if ( true === (bool) call_user_func( $field['is_complete'], $user ) ) {
+			if ( ! $include_complete && true === (bool) call_user_func( $field['is_complete'], $user ) ) {
 				continue;
 			}
 			$client = array_intersect_key( $field, array_flip( self::CLIENT_KEYS ) );
@@ -108,10 +171,10 @@ class Setup_Fields {
 			} else {
 				$client['value'] = call_user_func( $field['value'], $user );
 			}
-			$incomplete[] = $client;
+			$listed[] = $client;
 		}
 
-		return $incomplete;
+		return $listed;
 	}
 
 	/**
@@ -141,6 +204,10 @@ class Setup_Fields {
 			if ( is_wp_error( $result ) ) {
 				$errors[ $field['id'] ] = $result->get_error_message();
 			}
+		}
+
+		if ( array() === $errors ) {
+			self::clear_review( $user );
 		}
 
 		$fresh = get_userdata( $user->ID );
@@ -206,19 +273,20 @@ class Setup_Fields {
 	/**
 	 * Saved name parts for prefilling the name field.
 	 *
-	 * `nickname` is empty when it would fail the display name check, so the
-	 * browser never offers it.
+	 * `display_name` and `nickname` are empty when they would fail the display
+	 * name check, so the browser never offers them.
 	 *
 	 * @param WP_User $user User.
 	 * @return array{first_name: string, last_name: string, display_name: string, nickname: string}
 	 */
 	public static function name_value( WP_User $user ): array {
 		$nickname = self::user_meta_string( $user, 'nickname' );
+		$display  = trim( (string) $user->display_name );
 
 		return array(
 			'first_name'   => self::user_meta_string( $user, 'first_name' ),
 			'last_name'    => self::user_meta_string( $user, 'last_name' ),
-			'display_name' => (string) $user->display_name,
+			'display_name' => null === self::display_name_problem( $display, $user ) ? $display : '',
 			'nickname'     => null === self::display_name_problem( $nickname, $user ) ? $nickname : '',
 		);
 	}
@@ -227,8 +295,8 @@ class Setup_Fields {
 	 * Validate and store first name, last name, and display name.
 	 *
 	 * Blank first or last name parts fall back to the stored value. The display
-	 * name must be one of the combinations core offers on the profile screen,
-	 * minus the username and email.
+	 * name must be the current display name or one of the combinations core
+	 * offers on the profile screen, minus the username and email.
 	 *
 	 * @param WP_User $user  User.
 	 * @param mixed   $value Submitted `{ first_name, last_name, display_name }`.
@@ -245,7 +313,11 @@ class Setup_Fields {
 		}
 
 		$display = self::submitted_string( $value, 'display_name' );
-		$allowed = self::display_name_options( $first, $last, self::name_value( $user )['nickname'] );
+		$saved   = self::name_value( $user );
+		$allowed = self::display_name_options( $first, $last, $saved['nickname'] );
+		if ( '' !== $saved['display_name'] ) {
+			$allowed[] = $saved['display_name'];
+		}
 		if ( ! in_array( $display, $allowed, true ) ) {
 			return new WP_Error( 'prc_wp_admin_tours_invalid_display_name', __( 'Choose a display name from the list.', 'prc-wp-admin-tours' ) );
 		}
@@ -478,24 +550,30 @@ class Setup_Fields {
 		}
 
 		return array(
-			'id'          => $id,
-			'label'       => (string) $field['label'],
-			'description' => (string) ( $field['description'] ?? '' ),
-			'type'        => sanitize_key( (string) $field['type'] ),
-			'capability'  => (string) ( $field['capability'] ?? '' ),
-			'is_complete' => $field['is_complete'],
-			'save'        => isset( $field['save'] ) && is_callable( $field['save'] ) ? $field['save'] : null,
-			'value'       => isset( $field['value'] ) && is_callable( $field['value'] ) ? $field['value'] : null,
+			'id'            => $id,
+			'label'         => (string) $field['label'],
+			'description'   => (string) ( $field['description'] ?? '' ),
+			'type'          => sanitize_key( (string) $field['type'] ),
+			'capability'    => (string) ( $field['capability'] ?? '' ),
+			'is_applicable' => isset( $field['is_applicable'] ) && is_callable( $field['is_applicable'] ) ? $field['is_applicable'] : null,
+			'is_complete'   => $field['is_complete'],
+			'save'          => isset( $field['save'] ) && is_callable( $field['save'] ) ? $field['save'] : null,
+			'value'         => isset( $field['value'] ) && is_callable( $field['value'] ) ? $field['value'] : null,
 		);
 	}
 
 	/**
-	 * Whether the field's optional capability allows this user.
+	 * Whether the field's optional capability and `is_applicable` callback
+	 * allow this user.
 	 *
 	 * @param WP_User              $user  User.
 	 * @param array<string, mixed> $field Normalized field.
 	 */
 	private static function user_can( WP_User $user, array $field ): bool {
-		return '' === $field['capability'] || user_can( $user, $field['capability'] );
+		if ( '' !== $field['capability'] && ! user_can( $user, $field['capability'] ) ) {
+			return false;
+		}
+
+		return null === $field['is_applicable'] || true === (bool) call_user_func( $field['is_applicable'], $user );
 	}
 }

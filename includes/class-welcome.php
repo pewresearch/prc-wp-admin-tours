@@ -110,7 +110,7 @@ class Welcome {
 			'logoUrl'           => content_url( 'images/logos/primary-light.svg' ),
 			'logoDarkUrl'       => content_url( 'images/logos/primary-white.svg' ),
 			'actions'           => self::actions(),
-			'setupFields'       => Setup_Fields::incomplete_for( wp_get_current_user() ),
+			'setupFields'       => Setup_Fields::for_user( wp_get_current_user() ),
 			'setupSnoozedUntil' => (int) ( $progress['snoozedUntil'] ?? 0 ),
 			'now'               => time(),
 			'setupUrl'          => rest_url( 'prc-api/v3/wp-admin-tours/setup' ),

@@ -12,6 +12,12 @@ The default welcome splash opens on a setup step when the current user has incom
 
 `POST /prc-api/v3/wp-admin-tours/progress` accepts `snooze: true`. The server then stores `snoozedUntil` (now plus one day) on the tour entry. The welcome splash sends it on skip or action while fields are incomplete. `Welcome::payload()` localizes `setupSnoozedUntil` and server `now`, and `welcomeNeedsSetup()` in `src/screen.js` reopens the splash once the snooze has passed. Change the length with the `prc_wp_admin_tours_setup_snooze_seconds` filter (seconds, default `DAY_IN_SECONDS`).
 
+### Restart Onboarding
+
+**Restart Onboarding** appears as a link in the admin bar profile dropdown and as a button on the user's own profile screen (`show_user_profile`). It needs the `read` capability. The link goes to `admin-post.php?action=prc_wp_admin_tours_restart_onboarding` with a nonce, so it also works from the front-end admin bar, where the tours bundle does not load. `Restart_Onboarding::reset()` marks the welcome tour not started and sets the `prc_wp_admin_tours_setup_review` user meta. Then the request redirects to wp-admin.
+
+While that meta is set, `Setup_Fields::for_user()` lists every setup field the user may see, complete or not. The user can then change their display name, set editor preferences, and reconnect Slack or ORCID. `Setup_Fields::save()` clears the meta after a save without errors. `POST /prc-api/v3/wp-admin-tours/progress` clears it when the welcome tour becomes `completed` or `dismissed`. `incomplete_for()` ignores review mode. Spotlight tours and release-note splashes are not reset.
+
 The built-in fields are:
 
 - `name` (`name`): incomplete until the first name and last name are set and the display name is not empty, the username, or an email address. The step shows first-name and last-name inputs only for the parts that are empty, plus a "Display name publicly as" dropdown with the choices core offers on the profile screen (nickname, first, last, "first last", "last first"), minus the username and email. Save rejects a display name outside those choices.

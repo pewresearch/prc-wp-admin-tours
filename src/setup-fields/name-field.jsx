@@ -13,17 +13,22 @@ const DEFAULT_CHOICE = 'firstLast';
 
 /**
  * Display name choices in the order core lists them in user-edit.php, minus
- * the username and email. Empty and duplicate labels are dropped.
+ * the username and email. Like core, the current display name comes first
+ * when it matches no other choice. Empty and duplicate labels are dropped.
  *
  * @param {Object} parts
  * @param {string} parts.first
  * @param {string} parts.last
  * @param {string} parts.nickname
+ * @param {string} parts.current
  * @return {Array<{key: string, label: string}>} Options.
  */
-export function displayNameOptions({ first, last, nickname }) {
+export function displayNameOptions({ first, last, nickname, current }) {
 	const both = first && last;
+	const combos = [first, last, `${first} ${last}`, `${last} ${first}`];
+	const custom = current && current !== nickname && !combos.includes(current);
 	const candidates = [
+		{ key: 'current', label: custom ? current : '' },
 		{ key: 'nickname', label: nickname },
 		{ key: 'first', label: first },
 		{ key: 'last', label: last },
@@ -47,34 +52,52 @@ function parts(field, value) {
 		first: (value.first_name || '').trim(),
 		last: (value.last_name || '').trim(),
 		nickname: (field.value?.nickname || '').trim(),
+		current: (field.value?.display_name || '').trim(),
 	};
 }
 
-function selectedLabel(options, choice) {
-	const selected = options.find((option) => option.key === choice);
+// The "current" choice drops out once the typed names spell the saved display
+// name, so fall back to whichever choice still matches it.
+function selectedLabel(options, choice, current) {
+	const selected =
+		options.find((option) => option.key === choice) ??
+		options.find((option) => option.label === current);
 	return selected?.label ?? options[0]?.label ?? '';
 }
 
 export function nameInitialValue(field) {
-	return {
+	const initial = {
 		first_name: field.value?.first_name || '',
 		last_name: field.value?.last_name || '',
-		choice: DEFAULT_CHOICE,
+	};
+	// Keep a display name the user already chose, so reviewing the setup step
+	// does not rewrite it. The server sends no display name for a login or
+	// email, so those fall back to "First Last".
+	const named = parts(field, initial);
+	const saved = displayNameOptions(named).find(
+		(option) => option.label === named.current
+	);
+
+	return {
+		...initial,
+		choice: saved?.key ?? DEFAULT_CHOICE,
 	};
 }
 
 export function nameSubmitValue(field, value) {
-	const options = displayNameOptions(parts(field, value));
+	const named = parts(field, value);
+	const options = displayNameOptions(named);
 	return {
 		first_name: value.first_name || '',
 		last_name: value.last_name || '',
-		display_name: selectedLabel(options, value.choice),
+		display_name: selectedLabel(options, value.choice, named.current),
 	};
 }
 
 export function NameField({ field, value, error, onChange }) {
-	const options = displayNameOptions(parts(field, value));
-	const current = selectedLabel(options, value.choice);
+	const named = parts(field, value);
+	const options = displayNameOptions(named);
+	const current = selectedLabel(options, value.choice, named.current);
 	const update = (changes) => onChange({ ...value, ...changes });
 
 	return (
