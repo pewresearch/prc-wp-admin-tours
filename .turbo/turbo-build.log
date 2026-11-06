@@ -1,5 +1,5 @@
 
-> @prc/wp-admin-tours@1.4.1 build
+> @prc/wp-admin-tours@1.5.0 build
 > wp-scripts build && wp-scripts build --config webpack.settings.config.js
 
 Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
@@ -23,7 +23,7 @@ built modules 12.8 KiB (css/mini-extract) 80.3 KiB (javascript) [1m[33m[built]
     css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 9.17 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   [1m./src/index.js + 24 modules[39m[22m 80.3 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]![1m../../node_modules/driver.js/dist/driver.css[39m[22m 2.96 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 2077 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 12289 ms
 Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
   npx update-browserslist-db@latest
   Why you should do it regularly: https://github.com/browserslist/update-db#readme
@@ -43,4 +43,4 @@ built modules 47.8 KiB (javascript) 18.3 KiB (css/mini-extract) [1m[33m[built]
   [1m./src/settings/index.tsx + 22 modules[39m[22m 47.8 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/settings/style.scss[39m[22m 9.17 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
   css ../../node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!../../node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!../../node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]![1m./src/welcome.scss[39m[22m 9.17 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 1215 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 7371 ms
