@@ -45,5 +45,20 @@ function allowed_progress_statuses(): array {
  * @return string[]
  */
 function allowed_tour_modes(): array {
-	return array( 'spotlight', 'splash' );
+	return array( 'spotlight', 'splash', 'announcement' );
+}
+
+/**
+ * Whether this request runs on the site that owns announcements.
+ */
+function is_primary_site(): bool {
+	if ( ! is_multisite() ) {
+		return true;
+	}
+
+	if ( defined( 'PRC_PRIMARY_SITE_ID' ) ) {
+		return get_current_blog_id() === (int) PRC_PRIMARY_SITE_ID;
+	}
+
+	return is_main_site();
 }

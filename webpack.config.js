@@ -7,5 +7,9 @@ module.exports = {
 	entry: {
 		...getWebpackEntryPoints('script')(),
 		index: path.resolve(__dirname, 'src/index.js'),
+		'announcement-editor': path.resolve(
+			__dirname,
+			'src/announcement-editor.jsx'
+		),
 	},
 };

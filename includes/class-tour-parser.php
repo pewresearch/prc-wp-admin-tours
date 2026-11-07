@@ -72,7 +72,7 @@ class Tour_Parser {
 			$mode = 'spotlight';
 		}
 
-		$parsed = array(
+		$tour = array(
 			'id'         => $id,
 			'title'      => $title,
 			'version'    => $version,
@@ -83,88 +83,41 @@ class Tour_Parser {
 			'steps'      => $steps,
 		);
 
-		if ( 'splash' === $mode && isset( $raw['splash'] ) ) {
-			$splash = self::parse_splash_payload( $raw['splash'] );
-			if ( null !== $splash ) {
-				$parsed['splash'] = $splash;
+		if ( 'announcement' === $mode ) {
+			$announcement = self::parse_announcement_payload( $raw['announcement'] ?? null );
+			if ( null === $announcement ) {
+				self::log_invalid( $id, 'Announcement tours need an announcement.iframeUrl.' );
+				return null;
 			}
+			$tour['announcement'] = $announcement;
 		}
 
-		return $parsed;
+		return $tour;
 	}
 
 	/**
-	 * Optional splash overlay payload.
+	 * Parse the card and modal payload of an announcement tour.
 	 *
-	 * @param mixed $raw Raw splash payload.
-	 * @return array<string, mixed>|null
+	 * @param mixed $raw Raw payload.
+	 * @return array{summary: string, imageUrl: string, imageAlt: string, iframeUrl: string, publishedAt: int}|null
 	 */
-	public static function parse_splash_payload( $raw ): ?array {
+	public static function parse_announcement_payload( $raw ): ?array {
 		if ( ! is_array( $raw ) ) {
 			return null;
 		}
 
-		$body = isset( $raw['body'] ) ? (string) $raw['body'] : '';
-		if ( function_exists( 'sanitize_textarea_field' ) ) {
-			$body = sanitize_textarea_field( $body );
-		}
-
-		$published_at = isset( $raw['publishedAt'] ) ? (int) $raw['publishedAt'] : 0;
-		if ( $published_at < 0 ) {
-			$published_at = 0;
+		$iframe_url = esc_url_raw( (string) ( $raw['iframeUrl'] ?? '' ) );
+		if ( '' === $iframe_url ) {
+			return null;
 		}
 
 		return array(
-			'body'        => $body,
-			'buttons'     => self::parse_splash_buttons( $raw['buttons'] ?? array() ),
-			'showLogo'    => ! array_key_exists( 'showLogo', $raw ) || ! empty( $raw['showLogo'] ),
-			'publishedAt' => $published_at,
+			'summary'     => sanitize_text_field( (string) ( $raw['summary'] ?? '' ) ),
+			'imageUrl'    => esc_url_raw( (string) ( $raw['imageUrl'] ?? '' ) ),
+			'imageAlt'    => sanitize_text_field( (string) ( $raw['imageAlt'] ?? '' ) ),
+			'iframeUrl'   => $iframe_url,
+			'publishedAt' => max( 0, (int) ( $raw['publishedAt'] ?? 0 ) ),
 		);
-	}
-
-	/**
-	 * Parse overlay buttons.
-	 *
-	 * @param mixed $raw Raw buttons.
-	 * @return array<int, array{id: string, label: string, url: string}>
-	 */
-	public static function parse_splash_buttons( $raw ): array {
-		if ( ! is_array( $raw ) ) {
-			return array();
-		}
-
-		$buttons = array();
-		foreach ( $raw as $index => $item ) {
-			if ( count( $buttons ) >= Splash_Catalog::MAX_BUTTONS ) {
-				break;
-			}
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-
-			$label = isset( $item['label'] ) ? sanitize_text_field( (string) $item['label'] ) : '';
-			$url   = isset( $item['url'] ) ? (string) $item['url'] : '';
-			if ( '' !== $url && function_exists( 'esc_url_raw' ) ) {
-				$url = esc_url_raw( $url );
-			}
-
-			if ( '' === $label || '' === $url ) {
-				continue;
-			}
-
-			$id = isset( $item['id'] ) ? sanitize_key( (string) $item['id'] ) : '';
-			if ( '' === $id ) {
-				$id = 'button-' . (string) $index;
-			}
-
-			$buttons[] = array(
-				'id'    => $id,
-				'label' => $label,
-				'url'   => $url,
-			);
-		}
-
-		return $buttons;
 	}
 
 	/**

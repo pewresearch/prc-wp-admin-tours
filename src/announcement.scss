@@ -1,0 +1,180 @@
+.prc-wp-admin-tours-announcement-card {
+	--prc-announcement-bg: #ffffff;
+	--prc-announcement-fg: #1e1e1e;
+	--prc-announcement-muted: #5c5c5c;
+	--prc-announcement-border: rgba(0, 0, 0, 0.1);
+	--prc-announcement-hover-bg: #f6f6f6;
+	position: fixed;
+	// Start past the admin menu (160px, or 36px folded). DataViews screens raise the menu to
+	// z-index 10000, so a card under it would be hidden; z-index alone cannot fix that.
+	inset-inline-start: 172px;
+	bottom: 12px;
+	// Below the admin bar, Modal, and driver.js. The open mobile menu covers the card.
+	z-index: 9991;
+	width: 260px;
+	max-width: calc(100vw - 24px);
+	border: 1px solid var(--prc-announcement-border);
+	border-radius: 8px;
+	background: var(--prc-announcement-bg);
+	color: var(--prc-announcement-fg);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+	animation: prc-announcement-enter 0.25s ease-out both;
+
+	body.folded & {
+		inset-inline-start: 48px;
+	}
+
+	@media (max-width: 960px) {
+		body.auto-fold & {
+			inset-inline-start: 48px;
+		}
+	}
+
+	body.is-fullscreen-mode & {
+		inset-inline-start: 12px;
+	}
+
+	@media (max-width: 782px) {
+		&,
+		body.folded &,
+		body.auto-fold & {
+			inset-inline-start: 12px;
+		}
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	.prc-wp-admin-tours-announcement-card {
+		--prc-announcement-bg: #1e1e1e;
+		--prc-announcement-fg: #f0f0f0;
+		--prc-announcement-muted: #b4b4b4;
+		--prc-announcement-border: rgba(255, 255, 255, 0.14);
+		--prc-announcement-hover-bg: #2a2a2a;
+	}
+}
+
+.prc-wp-admin-tours-announcement-card__open {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	margin: 0;
+	padding: 12px;
+	border: 0;
+	border-radius: inherit;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+
+	&:hover {
+		background: var(--prc-announcement-hover-bg);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+		outline-offset: -2px;
+	}
+}
+
+.prc-wp-admin-tours-announcement-card__image {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	margin-bottom: 4px;
+	border-radius: 4px;
+	object-fit: cover;
+}
+
+.prc-wp-admin-tours-announcement-card__title {
+	// Room for the dismiss button.
+	padding-right: 20px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.prc-wp-admin-tours-announcement-card__summary {
+	color: var(--prc-announcement-muted);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.prc-wp-admin-tours-announcement-card__dismiss.components-button {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	border-radius: 4px;
+	background: var(--prc-announcement-bg);
+	color: var(--prc-announcement-muted);
+	opacity: 0;
+	transition: opacity 0.15s ease;
+
+	&:hover,
+	&:focus {
+		color: var(--prc-announcement-fg);
+	}
+}
+
+.prc-wp-admin-tours-announcement-card:hover,
+.prc-wp-admin-tours-announcement-card:focus-within {
+	.prc-wp-admin-tours-announcement-card__dismiss {
+		opacity: 1;
+	}
+}
+
+@media (hover: none) {
+	.prc-wp-admin-tours-announcement-card__dismiss.components-button {
+		opacity: 1;
+	}
+}
+
+.prc-wp-admin-tours-announcement-modal__body {
+	// Modal positions its header against the frame, so the overlay gets its own context.
+	position: relative;
+}
+
+.prc-wp-admin-tours-announcement-modal__date {
+	color: #757575;
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+.prc-wp-admin-tours-announcement-modal__frame {
+	display: block;
+	width: 100%;
+	// Fallback until iframe-resizer sets an inline height.
+	height: min(70vh, 640px);
+	border: 0;
+}
+
+.prc-wp-admin-tours-announcement-modal__loading {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@keyframes prc-announcement-enter {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.prc-wp-admin-tours-announcement-card {
+		animation: none;
+	}
+
+	.prc-wp-admin-tours-announcement-card__dismiss.components-button {
+		transition: none;
+	}
+}

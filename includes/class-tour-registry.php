@@ -15,6 +15,13 @@ namespace PRC\Platform\Wp_Admin_Tours;
 class Tour_Registry {
 	public const ACTION_REGISTER = 'prc_wp_admin_tours_register';
 
+	private const WELCOME_RANK = 0;
+	private const MODE_RANK    = array(
+		'splash'       => 1,
+		'announcement' => 2,
+		'spotlight'    => 3,
+	);
+
 	/**
 	 * Parsed tours keyed by id.
 	 *
@@ -56,15 +63,7 @@ class Tour_Registry {
 		 */
 		do_action( self::ACTION_REGISTER, $this );
 
-		$this->register_catalog_tours();
-	}
-
-	/**
-	 * Register splash tours from Settings > Admin Tours.
-	 */
-	private function register_catalog_tours(): void {
-		$settings = Settings::get_settings();
-		foreach ( Splash_Catalog::rows_to_tours( $settings['splashes'], $settings['showLogo'] ) as $tour ) {
+		foreach ( Announcement_Catalog::rows_to_tours( Announcement_Catalog::get() ) as $tour ) {
 			$this->register( $tour );
 		}
 	}
@@ -123,12 +122,6 @@ class Tour_Registry {
 			if ( ! current_user_can( $tour['capability'] ) ) {
 				continue;
 			}
-			if (
-				Splash_Catalog::is_catalog_tour_id( (string) ( $tour['id'] ?? '' ) )
-				&& Splash_Catalog::is_authoring_screen( $current )
-			) {
-				continue;
-			}
 			if ( ! Screen::tour_visible_on( $tour, $current ) ) {
 				continue;
 			}
@@ -142,7 +135,7 @@ class Tour_Registry {
 	}
 
 	/**
-	 * Welcome first, then catalog splashes newest-first, then other tours.
+	 * Welcome first, then splashes, then announcements newest first, then spotlight tours.
 	 *
 	 * @param array<int, array<string, mixed>> $tours Matching tours.
 	 * @return array<int, array<string, mixed>>
@@ -151,22 +144,14 @@ class Tour_Registry {
 		usort(
 			$tours,
 			static function ( array $a, array $b ): int {
-				$a_welcome = Welcome::TOUR_ID === ( $a['id'] ?? '' );
-				$b_welcome = Welcome::TOUR_ID === ( $b['id'] ?? '' );
-				if ( $a_welcome !== $b_welcome ) {
-					return $a_welcome ? -1 : 1;
+				$rank = self::sort_rank( $a ) <=> self::sort_rank( $b );
+				if ( 0 !== $rank ) {
+					return $rank;
 				}
 
-				$a_splash = 'splash' === ( $a['mode'] ?? '' );
-				$b_splash = 'splash' === ( $b['mode'] ?? '' );
-				if ( $a_splash !== $b_splash ) {
-					return $a_splash ? -1 : 1;
-				}
-
-				$a_published = (int) ( $a['splash']['publishedAt'] ?? 0 );
-				$b_published = (int) ( $b['splash']['publishedAt'] ?? 0 );
-				if ( $a_published !== $b_published ) {
-					return $b_published <=> $a_published;
+				$published = (int) ( $b['announcement']['publishedAt'] ?? 0 ) <=> (int) ( $a['announcement']['publishedAt'] ?? 0 );
+				if ( 0 !== $published ) {
+					return $published;
 				}
 
 				return strcmp( (string) ( $a['id'] ?? '' ), (string) ( $b['id'] ?? '' ) );
@@ -177,24 +162,15 @@ class Tour_Registry {
 	}
 
 	/**
-	 * Catalog splashes are hidden from accounts created after publish.
+	 * Announcements are hidden from accounts created after publish.
 	 *
 	 * @param array<string, mixed> $tour    Parsed tour.
 	 * @param int                  $user_id User id.
 	 */
 	public static function user_eligible_for_tour( array $tour, int $user_id ): bool {
-		$id = (string) ( $tour['id'] ?? '' );
-		if ( ! Splash_Catalog::is_catalog_tour_id( $id ) ) {
-			return true;
-		}
-
-		$published_at = (int) ( $tour['splash']['publishedAt'] ?? 0 );
+		$published_at = (int) ( $tour['announcement']['publishedAt'] ?? 0 );
 		if ( $published_at <= 0 ) {
 			return true;
-		}
-
-		if ( $user_id <= 0 || ! function_exists( 'get_userdata' ) ) {
-			return false;
 		}
 
 		$user = get_userdata( $user_id );
@@ -207,11 +183,23 @@ class Tour_Registry {
 		}
 
 		$registered = strtotime( (string) $user->user_registered . ' UTC' );
-		if ( ! is_int( $registered ) ) {
+		if ( false === $registered ) {
 			return true;
 		}
 
-		return Splash_Catalog::is_user_eligible( $registered, $published_at );
+		return Announcement_Catalog::is_user_eligible( $registered, $published_at );
+	}
+
+	/**
+	 * Sort bucket for a tour.
+	 *
+	 * @param array<string, mixed> $tour Parsed tour.
+	 */
+	private static function sort_rank( array $tour ): int {
+		if ( Welcome::TOUR_ID === ( $tour['id'] ?? '' ) ) {
+			return self::WELCOME_RANK;
+		}
+		return self::MODE_RANK[ $tour['mode'] ?? 'spotlight' ] ?? self::MODE_RANK['spotlight'];
 	}
 
 	/**

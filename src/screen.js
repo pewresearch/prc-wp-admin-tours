@@ -114,8 +114,44 @@ export function shouldAutoStart(tour, progress, current) {
 	return false;
 }
 
-export function isSplashTour(tour) {
-	return tour?.mode === 'splash';
+/**
+ * @typedef {'spotlight'|'splash'|'announcement'} TourMode
+ */
+
+/**
+ * The parser coerces unknown modes to spotlight, so a missing mode is a spotlight tour.
+ *
+ * @param {Object} tour Tour config.
+ * @return {TourMode|string} Render mode.
+ */
+export function tourMode(tour) {
+	return tour?.mode || 'spotlight';
+}
+
+function isTerminal(progress) {
+	return progress?.status === 'completed' || progress?.status === 'dismissed';
+}
+
+/**
+ * First announcement the user has not opened or dismissed, newest first.
+ *
+ * @param {Object[]} tours       Matching tours, sorted by the server.
+ * @param {Object}   progressMap Progress keyed by tour id.
+ * @param {Object}   current     Current screen.
+ * @return {Object|null} Announcement tour.
+ */
+export function findPendingAnnouncement(tours, progressMap, current) {
+	if (!Array.isArray(tours)) {
+		return null;
+	}
+	return (
+		tours.find(
+			(tour) =>
+				tourMode(tour) === 'announcement' &&
+				!isTerminal(progressMap?.[tour.id]) &&
+				anyScreenMatches(tour.screens, current)
+		) || null
+	);
 }
 
 export const WELCOME_TOUR_ID = 'prc-wp-admin-tours/welcome';
@@ -154,28 +190,38 @@ function shouldAutoStartSplash(tour, progress, current, welcome) {
 	);
 }
 
+function autoStartsOnLoad(tour, progressMap, current, welcome) {
+	const progress = progressMap?.[tour.id];
+	switch (tourMode(tour)) {
+		case 'splash':
+			return shouldAutoStartSplash(tour, progress, current, welcome);
+		case 'spotlight':
+			return shouldAutoStart(tour, progress, current);
+		case 'announcement':
+			return false;
+		default:
+			return false;
+	}
+}
+
+/**
+ * A splash wins over a spotlight tour. Announcements never auto-start; they wait as a card.
+ *
+ * @param {Object[]} tours       Matching tours.
+ * @param {Object}   progressMap Progress keyed by tour id.
+ * @param {Object}   current     Current screen.
+ * @param {Object}   welcome     Localized welcome payload.
+ * @return {Object|null} Tour to start.
+ */
 export function findAutoStartTour(tours, progressMap, current, welcome) {
 	if (!Array.isArray(tours)) {
 		return null;
 	}
-	const splash = tours.find(
-		(tour) =>
-			isSplashTour(tour) &&
-			shouldAutoStartSplash(
-				tour,
-				progressMap?.[tour.id],
-				current,
-				welcome
-			)
-	);
-	if (splash) {
-		return splash;
-	}
+	const starts = (tour) =>
+		autoStartsOnLoad(tour, progressMap, current, welcome);
 	return (
-		tours.find(
-			(tour) =>
-				!isSplashTour(tour) &&
-				shouldAutoStart(tour, progressMap?.[tour.id], current)
-		) || null
+		tours.find((tour) => tourMode(tour) === 'splash' && starts(tour)) ||
+		tours.find(starts) ||
+		null
 	);
 }

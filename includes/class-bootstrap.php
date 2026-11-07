@@ -75,7 +75,6 @@ class Bootstrap {
 		$this->loader = new Loader();
 
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-tour-parser.php';
-		require_once plugin_dir_path( __DIR__ ) . '/includes/class-splash-catalog.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-tour-registry.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-progress.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-screen.php';
@@ -83,8 +82,10 @@ class Bootstrap {
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-assets.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-setup-fields.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-welcome.php';
-		require_once plugin_dir_path( __DIR__ ) . '/includes/class-settings.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-restart-onboarding.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-announcement-catalog.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-announcement-post-type.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-legacy-splash-conversion.php';
 	}
 
 	/**
@@ -96,10 +97,11 @@ class Bootstrap {
 	private function init_dependencies() {
 		$this->registry = new Tour_Registry( $this->get_loader() );
 		new Welcome( $this->get_loader() );
-		new Settings( $this->get_loader() );
 		new REST_Controller( $this->get_loader(), $this->registry );
 		new Assets( $this->get_loader(), $this->registry );
 		new Restart_Onboarding( $this->get_loader(), $this->registry );
+		new Announcement_Post_Type( $this->get_loader() );
+		new Legacy_Splash_Conversion( $this->get_loader() );
 	}
 
 	/**

@@ -13,7 +13,8 @@ namespace PRC\Platform\Wp_Admin_Tours;
  * Enqueue the admin tour engine when the built assets exist.
  */
 class Assets {
-	public const SCRIPT_HANDLE = 'prc-wp-admin-tours';
+	public const SCRIPT_HANDLE  = 'prc-wp-admin-tours';
+	public const RESIZER_HANDLE = 'prc-platform-iframe-embeds-resizer-script';
 
 	/**
 	 * Tour registry.
@@ -65,10 +66,15 @@ class Assets {
 			return;
 		}
 
+		$dependencies = (array) ( $asset['dependencies'] ?? array() );
+		if ( in_array( 'announcement', array_column( $tours, 'mode' ), true ) && self::register_resizer() ) {
+			$dependencies[] = self::RESIZER_HANDLE;
+		}
+
 		wp_enqueue_script(
 			$handle,
 			plugins_url( 'build/index.js', PRC_WP_ADMIN_TOURS_FILE ),
-			(array) ( $asset['dependencies'] ?? array() ),
+			$dependencies,
 			(string) ( $asset['version'] ?? PRC_WP_ADMIN_TOURS_VERSION ),
 			true
 		);
@@ -116,5 +122,31 @@ class Assets {
 		) {
 			wp_enqueue_command_palette_assets();
 		}
+	}
+
+	/**
+	 * Register the iframe-resizer parent script where prc-embeds is not active.
+	 *
+	 * @return bool Whether the handle is registered.
+	 */
+	private static function register_resizer(): bool {
+		if ( wp_script_is( self::RESIZER_HANDLE, 'registered' ) ) {
+			return true;
+		}
+
+		$build      = WP_PLUGIN_DIR . '/prc-embeds/build/';
+		$asset_file = $build . 'iframe-resizer.asset.php';
+		if ( ! file_exists( $build . 'iframe-resizer.js' ) || ! file_exists( $asset_file ) ) {
+			return false;
+		}
+
+		$asset = include $asset_file;
+		return wp_register_script(
+			self::RESIZER_HANDLE,
+			plugins_url( 'build/iframe-resizer.js', WP_PLUGIN_DIR . '/prc-embeds/prc-embeds.php' ),
+			(array) ( $asset['dependencies'] ?? array() ),
+			(string) ( $asset['version'] ?? PRC_WP_ADMIN_TOURS_VERSION ),
+			true
+		);
 	}
 }

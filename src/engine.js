@@ -11,21 +11,18 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal Dependencies
  */
+import { mountAnnouncement, unmountAnnouncement } from './announcement';
 import { resolveNextClickTarget } from './advance';
 import { closeUnrelatedExpandedToggles } from './popovers';
 import { getProgress, resetProgress, saveProgress } from './progress';
 import {
 	detectScreen,
 	findAutoStartTour,
-	isSplashTour,
+	findPendingAnnouncement,
+	tourMode,
 	visibleSteps,
 } from './screen';
-import {
-	hasWelcomeContent,
-	isCatalogSplash,
-	mountWelcome,
-	unmountWelcome,
-} from './welcome';
+import { hasWelcomeContent, mountWelcome, unmountWelcome } from './welcome';
 
 let activeDriver = null;
 let suppressDestroyPersist = false;
@@ -33,9 +30,10 @@ let suppressDestroyPersist = false;
 export {
 	detectScreen,
 	findAutoStartTour,
-	isSplashTour,
+	findPendingAnnouncement,
 	shouldAutoStart,
 	stepVisibleOn,
+	tourMode,
 	visibleSteps,
 	welcomeNeedsSetup,
 } from './screen';
@@ -288,18 +286,44 @@ export function driveTour(tour, startGlobalIndex = 0) {
 
 export async function restartTour(tour) {
 	await resetProgress(tour.id);
-	if (isSplashTour(tour)) {
-		stopActiveTour();
-		unmountWelcome();
-		mountWelcome(tour);
-		return;
+	switch (tourMode(tour)) {
+		case 'splash':
+			stopActiveTour();
+			unmountAnnouncement();
+			unmountWelcome();
+			mountWelcome(tour);
+			break;
+		case 'spotlight':
+			unmountAnnouncement();
+			unmountWelcome();
+			driveTour(tour, 0);
+			break;
+		case 'announcement':
+			stopActiveTour();
+			unmountWelcome();
+			mountAnnouncement(tour, { openImmediately: true });
+			break;
+		default:
+			break;
 	}
-	unmountWelcome();
-	driveTour(tour, 0);
 }
 
 function remainingTours(tours, tourId) {
 	return tours.filter((item) => item.id !== tourId);
+}
+
+function showPendingAnnouncement(tours) {
+	const tour = findPendingAnnouncement(
+		tours,
+		window.prcWpAdminTours?.progress,
+		detectScreen()
+	);
+	if (!tour) {
+		return;
+	}
+	mountAnnouncement(tour, {
+		onDone: () => showPendingAnnouncement(tours),
+	});
 }
 
 export function startMatchingTours(tours, progressMap) {
@@ -315,28 +339,38 @@ export function startMatchingTours(tours, progressMap) {
 		window.prcWpAdminTours?.welcome
 	);
 	if (!tour) {
+		showPendingAnnouncement(tours);
 		return;
 	}
 
-	if (isSplashTour(tour)) {
-		if (!isCatalogSplash(tour) && !hasWelcomeContent()) {
-			startMatchingTours(remainingTours(tours, tour.id), progressMap);
-			return;
-		}
-		stopActiveTour();
-		mountWelcome(tour, {
-			onDismissed: () =>
-				startMatchingTours(
-					remainingTours(tours, tour.id).filter(
-						(item) => !isSplashTour(item)
+	switch (tourMode(tour)) {
+		case 'splash':
+			if (!hasWelcomeContent()) {
+				startMatchingTours(remainingTours(tours, tour.id), progressMap);
+				break;
+			}
+			stopActiveTour();
+			mountWelcome(tour, {
+				// Announcement cards wait for the next page load after a splash.
+				onDismissed: () =>
+					startMatchingTours(
+						remainingTours(tours, tour.id).filter(
+							(item) => tourMode(item) === 'spotlight'
+						),
+						progressMap
 					),
-					progressMap
-				),
-		});
-		return;
+			});
+			break;
+		case 'spotlight': {
+			const progress = getProgress(tour.id);
+			const start =
+				progress.status === 'in_progress' ? progress.stepIndex : 0;
+			driveTour(tour, start);
+			break;
+		}
+		case 'announcement':
+			break;
+		default:
+			break;
 	}
-
-	const progress = getProgress(tour.id);
-	const start = progress.status === 'in_progress' ? progress.stepIndex : 0;
-	driveTour(tour, start);
 }

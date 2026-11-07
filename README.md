@@ -1,10 +1,16 @@
 # PRC WP Admin Tours
 
-Host plugin for first-time wp-admin product tours, the welcome splash, and settings-authored release-note splash overlays. Domain plugins register spotlight tours. This plugin matches the current screen, runs the spotlight engine or the splash overlay, and stores per-user progress.
+Host plugin for first-time wp-admin product tours, the welcome splash, and network announcements. Domain plugins register spotlight tours. This plugin matches the current screen, runs the spotlight engine, the welcome splash, or the announcement card, and stores per-user progress.
 
 **Package:** `@prc/wp-admin-tours`
 
 See [docs/plugins/prc-wp-admin-tours](../../docs/plugins/prc-wp-admin-tours/index.md).
+
+## Announcements
+
+An announcement is a `prc_announcement` post on pewresearch-org, under **Settings > Announcements**. Only administrators can write one. `Announcement_Catalog` copies the newest 10 published announcements to the `prc_wp_admin_tours_announcements` network option. Every site reads that option and shows a card in the bottom-left corner of wp-admin. The card opens the post in a modal, through the prc-embeds `/iframe/?iframeTemplate=content` view.
+
+Change the editor block list with the `prc_wp_admin_tours_announcement_allowed_blocks` filter. VIP does not allow a rewrite flush at runtime. After the first deploy, run `wp rewrite flush --url=<pewresearch-org URL>` once. Until then, the announcement URLs do not resolve. See [Announcements](../../docs/plugins/prc-wp-admin-tours/architecture.md#announcements) for the hooks, versioning, and the legacy splash conversion.
 
 ## Welcome setup fields
 
@@ -16,7 +22,7 @@ The default welcome splash opens on a setup step when the current user has incom
 
 **Restart Onboarding** appears as a link in the admin bar profile dropdown and as a button on the user's own profile screen (`show_user_profile`). It needs the `read` capability. The link goes to `admin-post.php?action=prc_wp_admin_tours_restart_onboarding` with a nonce, so it also works from the front-end admin bar, where the tours bundle does not load. `Restart_Onboarding::reset()` marks the welcome tour not started and sets the `prc_wp_admin_tours_setup_review` user meta. Then the request redirects to wp-admin.
 
-While that meta is set, `Setup_Fields::for_user()` lists every setup field the user may see, complete or not. The user can then change their display name, set editor preferences, and reconnect Slack or ORCID. `Setup_Fields::save()` clears the meta after a save without errors. `POST /prc-api/v3/wp-admin-tours/progress` clears it when the welcome tour becomes `completed` or `dismissed`. `incomplete_for()` ignores review mode. Spotlight tours and release-note splashes are not reset.
+While that meta is set, `Setup_Fields::for_user()` lists every setup field the user may see, complete or not. The user can then change their display name, set editor preferences, and reconnect Slack or ORCID. `Setup_Fields::save()` clears the meta after a save without errors. `POST /prc-api/v3/wp-admin-tours/progress` clears it when the welcome tour becomes `completed` or `dismissed`. `incomplete_for()` ignores review mode. Spotlight tours and announcements are not reset.
 
 The built-in fields are:
 

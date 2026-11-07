@@ -33,18 +33,6 @@ export function hasWelcomeContent() {
 	return getWelcomeActions().length > 0 || getSetupFields().length > 0;
 }
 
-export function isCatalogSplash(tour) {
-	return Boolean(tour?.splash);
-}
-
-function getCatalogActions(tour) {
-	const buttons = tour?.splash?.buttons;
-	if (!Array.isArray(buttons)) {
-		return [];
-	}
-	return buttons.filter((item) => item?.label && item?.url);
-}
-
 function getFocusable(root) {
 	if (!root) {
 		return [];
@@ -91,11 +79,7 @@ function setAdminInert(inert) {
 	wrap.removeAttribute('aria-hidden');
 }
 
-function SplashLogo({ showLogo }) {
-	if (false === showLogo) {
-		return null;
-	}
-
+function SplashLogo() {
 	const logoUrl = window.prcWpAdminTours?.welcome?.logoUrl || '';
 	const logoDarkUrl = window.prcWpAdminTours?.welcome?.logoDarkUrl || '';
 	if (!logoUrl && !logoDarkUrl) {
@@ -121,47 +105,11 @@ function SplashLogo({ showLogo }) {
 	);
 }
 
-function CatalogBody({ tour, onAction }) {
-	const actions = getCatalogActions(tour).map((action) => ({
-		...action,
-		onClick: onAction,
-	}));
-	const title = tour?.title || __('What’s new', 'prc-wp-admin-tours');
-	const body = tour?.splash?.body || '';
-
-	return (
-		<>
-			<h1 id={TITLE_ID} className="prc-wp-admin-tours-welcome__title">
-				{title}
-			</h1>
-			{body ? (
-				<p className="prc-wp-admin-tours-welcome__body">{body}</p>
-			) : null}
-			{actions.length > 0 ? (
-				<div className="prc-wp-admin-tours-welcome__actions">
-					{actions.map((action, index) => (
-						<Button
-							key={action.id || action.url}
-							className="prc-wp-admin-tours-welcome__action"
-							variant={index === 0 ? 'primary' : 'secondary'}
-							__next40pxDefaultSize
-							onClick={() => action.onClick(action.url)}
-						>
-							{action.label}
-						</Button>
-					))}
-				</div>
-			) : null}
-		</>
-	);
-}
-
-function WelcomeSplash({ tour, onDismissed, preview }) {
+function WelcomeSplash({ tour, onDismissed }) {
 	const dialogRef = useRef(null);
 	const exitIntentRef = useRef(null);
-	const catalog = isCatalogSplash(tour);
-	const actions = catalog ? getCatalogActions(tour) : getWelcomeActions();
-	const [setupFields] = useState(() => (catalog ? [] : getSetupFields()));
+	const actions = getWelcomeActions();
+	const [setupFields] = useState(() => getSetupFields());
 	const [step, setStep] = useState(() =>
 		setupFields.length > 0 ? 'setup' : 'actions'
 	);
@@ -232,16 +180,14 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 			return;
 		}
 		exitIntentRef.current = 'skip';
-		if (!preview) {
-			try {
-				await saveProgress({
-					tourId: tour.id,
-					status: 'dismissed',
-					snooze: setupIncompleteRef.current,
-				});
-			} catch {
-				// Still close so the user is not trapped.
-			}
+		try {
+			await saveProgress({
+				tourId: tour.id,
+				status: 'dismissed',
+				snooze: setupIncompleteRef.current,
+			});
+		} catch {
+			// Still close so the user is not trapped.
 		}
 		await leave(onDismissed);
 	};
@@ -251,10 +197,6 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 			return;
 		}
 		exitIntentRef.current = 'action';
-		if (preview) {
-			await leave(onDismissed);
-			return;
-		}
 		try {
 			await saveProgress({
 				tourId: tour.id,
@@ -297,24 +239,20 @@ function WelcomeSplash({ tour, onDismissed, preview }) {
 			aria-labelledby={TITLE_ID}
 		>
 			<div className="prc-wp-admin-tours-welcome__inner">
-				<SplashLogo showLogo={tour?.splash?.showLogo} />
-				{catalog ? (
-					<CatalogBody tour={tour} onAction={handleAction} />
-				) : (
-					<WelcomeBodyWithActions
-						actions={welcomeActions}
-						step={step}
-						setupFields={setupFields}
-						onSetupDone={(remaining) => {
-							setupIncompleteRef.current = remaining.length > 0;
-							if (actions.length === 0) {
-								void handleSkip();
-								return;
-							}
-							setStep('actions');
-						}}
-					/>
-				)}
+				<SplashLogo />
+				<WelcomeBodyWithActions
+					actions={welcomeActions}
+					step={step}
+					setupFields={setupFields}
+					onSetupDone={(remaining) => {
+						setupIncompleteRef.current = remaining.length > 0;
+						if (actions.length === 0) {
+							void handleSkip();
+							return;
+						}
+						setStep('actions');
+					}}
+				/>
 				<Button
 					className="prc-wp-admin-tours-welcome__skip"
 					variant="link"
@@ -375,7 +313,7 @@ export function unmountWelcome() {
 	setAdminInert(false);
 }
 
-export function mountWelcome(tour, { onDismissed, preview } = {}) {
+export function mountWelcome(tour, { onDismissed } = {}) {
 	if (!tour?.id) {
 		return;
 	}
@@ -390,11 +328,5 @@ export function mountWelcome(tour, { onDismissed, preview } = {}) {
 	}
 
 	welcomeRoot = createRoot(node);
-	welcomeRoot.render(
-		<WelcomeSplash
-			tour={tour}
-			onDismissed={onDismissed}
-			preview={Boolean(preview)}
-		/>
-	);
+	welcomeRoot.render(<WelcomeSplash tour={tour} onDismissed={onDismissed} />);
 }
