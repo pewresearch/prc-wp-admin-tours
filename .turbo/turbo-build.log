@@ -1,5 +1,5 @@
 
-> @prc/wp-admin-tours@1.5.0 build
+> @prc/wp-admin-tours@1.6.0 build
 > wp-scripts build
 
 Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
@@ -30,4 +30,4 @@ built modules 15.1 KiB (css/mini-extract) 89.1 KiB (javascript) [1m[33m[built]
   javascript modules 89.1 KiB
     [1m./src/index.js + 26 modules[39m[22m 87.2 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
     [1m./src/announcement-editor.jsx + 7 modules[39m[22m 1.93 KiB [1m[31m[not cacheable][39m[22m [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
-webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 2415 ms
+webpack 5.106.2 compiled [1m[32msuccessfully[39m[22m in 10097 ms
