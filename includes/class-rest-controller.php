@@ -18,6 +18,8 @@ use WP_REST_Response;
  * POST /prc-api/v3/wp-admin-tours/setup
  */
 class REST_Controller {
+	public const ACTION_TOUR_COMPLETED = 'prc_wp_admin_tours_tour_completed';
+
 	/**
 	 * Tour registry.
 	 *
@@ -172,6 +174,14 @@ class REST_Controller {
 			);
 		}
 
+		if ( 'hint' === $tour['mode'] ) {
+			return new WP_Error(
+				'prc_wp_admin_tours_hint_progress',
+				__( 'Hint tours do not store progress.', 'prc-wp-admin-tours' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$incoming = array(
 			'status' => (string) $request->get_param( 'status' ),
 		);
@@ -194,6 +204,19 @@ class REST_Controller {
 			&& in_array( $incoming['status'], array( 'completed', 'dismissed' ), true )
 		) {
 			Setup_Fields::clear_review( wp_get_current_user() );
+		}
+
+		if ( 'completed' === $incoming['status'] && 'completed' === $progress['status'] ) {
+			/**
+			 * Fires when the engine reports that a user finished a tour.
+			 *
+			 * Fires on every `completed` write, so listeners must be idempotent.
+			 *
+			 * @param string               $tour_id Tour id.
+			 * @param int                  $user_id User id.
+			 * @param array<string, mixed> $tour    Parsed tour.
+			 */
+			do_action( self::ACTION_TOUR_COMPLETED, $tour_id, (int) get_current_user_id(), $tour );
 		}
 
 		return rest_ensure_response(

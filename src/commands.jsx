@@ -28,6 +28,8 @@ function commandLabel(tour) {
 				__('Restart tour: %s', 'prc-wp-admin-tours'),
 				tour.title
 			);
+		case 'hint':
+			return null;
 		default:
 			return null;
 	}

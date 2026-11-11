@@ -11,5 +11,6 @@ module.exports = {
 			__dirname,
 			'src/announcement-editor.jsx'
 		),
+		'training-profile': path.resolve(__dirname, 'src/training-profile.jsx'),
 	},
 };

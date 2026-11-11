@@ -24,13 +24,22 @@ class Assets {
 	private Tour_Registry $registry;
 
 	/**
+	 * Training module registry.
+	 *
+	 * @var Training_Module_Registry
+	 */
+	private Training_Module_Registry $training_modules;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Loader        $loader   Loader.
-	 * @param Tour_Registry $registry Tour registry.
+	 * @param Loader                   $loader           Loader.
+	 * @param Tour_Registry            $registry         Tour registry.
+	 * @param Training_Module_Registry $training_modules Training module registry.
 	 */
-	public function __construct( Loader $loader, Tour_Registry $registry ) {
-		$this->registry = $registry;
+	public function __construct( Loader $loader, Tour_Registry $registry, Training_Module_Registry $training_modules ) {
+		$this->registry         = $registry;
+		$this->training_modules = $training_modules;
 		$loader->add_action( 'admin_enqueue_scripts', $this, 'enqueue_admin_assets' );
 		$loader->add_action( 'enqueue_block_editor_assets', $this, 'enqueue_admin_assets' );
 	}
@@ -65,6 +74,7 @@ class Assets {
 		if ( array() === $tours ) {
 			return;
 		}
+		$tours = Tour_Media::resolve_tours( $tours );
 
 		$dependencies = (array) ( $asset['dependencies'] ?? array() );
 		if ( in_array( 'announcement', array_column( $tours, 'mode' ), true ) && self::register_resizer() ) {
@@ -87,6 +97,7 @@ class Assets {
 				'progress' => Progress::for_tours( (int) get_current_user_id(), $tours ),
 				'screen'   => Screen::current(),
 				'welcome'  => Welcome::payload(),
+				'training' => self::training_payload( $this->training_modules, $tours, (int) get_current_user_id() ),
 				'restUrl'  => rest_url( 'prc-api/v3/wp-admin-tours/progress' ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 			)
@@ -122,6 +133,45 @@ class Assets {
 		) {
 			wp_enqueue_command_palette_assets();
 		}
+	}
+
+	/**
+	 * Training modules whose tour runs on this screen, and the module named by `?prc-training=`.
+	 *
+	 * Null when training is not rolled out to the user.
+	 *
+	 * @param Training_Module_Registry         $registry Module registry.
+	 * @param array<int, array<string, mixed>> $tours    Tours localized on this screen.
+	 * @param int                              $user_id  User id.
+	 * @return array{restUrl: string, activeModuleId: string, modules: array<int, array<string, mixed>>}|null
+	 */
+	public static function training_payload( Training_Module_Registry $registry, array $tours, int $user_id ): ?array {
+		if ( ! Training_Gate::is_enabled( $user_id ) ) {
+			return null;
+		}
+
+		$tour_ids = array_column( $tours, 'id' );
+		$modules  = array();
+		foreach ( $registry->all() as $module ) {
+			if ( in_array( $module['tour'], $tour_ids, true ) ) {
+				$modules[] = array_merge(
+					Training_Module_Registry::to_public( $module ),
+					array( 'status' => Training_Progress::get( $user_id, $module['id'] )['status'] )
+				);
+			}
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Read-only; sanitize_tour_id() sanitizes.
+		$active = isset( $_GET[ TRAINING_QUERY_ARG ] ) ? sanitize_tour_id( wp_unslash( (string) $_GET[ TRAINING_QUERY_ARG ] ) ) : '';
+		if ( ! in_array( $active, array_column( $modules, 'id' ), true ) ) {
+			$active = '';
+		}
+
+		return array(
+			'restUrl'        => Training_REST_Controller::rest_url(),
+			'activeModuleId' => $active,
+			'modules'        => $modules,
+		);
 	}
 
 	/**

@@ -1,0 +1,85 @@
+.prc-wp-admin-tours-media-poster {
+	position: relative;
+	display: block;
+	width: 100%;
+	margin: 4px 0 0;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 4px;
+	background: #f0f0f0;
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+		outline-offset: 2px;
+	}
+}
+
+.prc-wp-admin-tours-media-poster__image {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.prc-wp-admin-tours-media-poster__play {
+	position: absolute;
+	inset: 50% auto auto 50%;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.6);
+	transform: translate(-50%, -50%);
+	transition: background 0.15s ease;
+
+	&::after {
+		position: absolute;
+		inset: 50% auto auto 54%;
+		border-block: 9px solid transparent;
+		border-inline-start: 14px solid #fff;
+		content: "";
+		transform: translate(-50%, -50%);
+	}
+
+	.prc-wp-admin-tours-media-poster:hover &,
+	.prc-wp-admin-tours-media-poster:focus-visible & {
+		background: var(--wp-admin-theme-color, #3858e9);
+	}
+}
+
+.prc-wp-admin-tours-popover-media {
+	margin-top: 8px;
+}
+
+// Above the driver.js popover (1000000000), so a tour step can open the video.
+.prc-wp-admin-tours-video-modal__overlay {
+	z-index: 1000000001;
+}
+
+// The video shrinks to the modal's height cap instead of scrolling its controls away.
+.prc-wp-admin-tours-video-modal .components-modal__content {
+	display: flex;
+	flex-direction: column;
+}
+
+.prc-wp-admin-tours-video-modal .components-modal__children-container {
+	display: flex;
+	flex: 0 1 auto;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.prc-wp-admin-tours-video-modal__video {
+	display: block;
+	flex: 0 1 auto;
+	width: 100%;
+	min-height: 0;
+	object-fit: contain;
+	background: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.prc-wp-admin-tours-media-poster__play {
+		transition: none;
+	}
+}

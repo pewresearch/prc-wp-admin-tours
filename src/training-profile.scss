@@ -1,0 +1,38 @@
+.prc-wp-admin-tours-training-profile {
+	max-width: 960px;
+	margin-bottom: 2em;
+
+	.components-notice {
+		margin: 0 0 1em;
+	}
+}
+
+.prc-wp-admin-tours-training-profile__builder {
+	margin-top: 1.5em;
+
+	.widefat td {
+		vertical-align: middle;
+	}
+
+	.description {
+		margin: 4px 0 0;
+	}
+}
+
+.prc-wp-admin-tours-training-profile__builder-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 16px;
+	margin-bottom: 8px;
+
+	h3 {
+		margin: 0;
+	}
+}
+
+.prc-wp-admin-tours-training-profile__action {
+	width: 1%;
+	white-space: nowrap;
+	text-align: right;
+}

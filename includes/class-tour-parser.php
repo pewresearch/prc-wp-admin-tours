@@ -72,11 +72,17 @@ class Tour_Parser {
 			$mode = 'spotlight';
 		}
 
+		if ( 'hint' === $mode && in_array( null, array_column( $steps, 'selector' ), true ) ) {
+			self::log_invalid( $id, 'Hint tours need a selector on every step.' );
+			return null;
+		}
+
 		$tour = array(
 			'id'         => $id,
 			'title'      => $title,
 			'version'    => $version,
-			'autoStart'  => ! empty( $raw['autoStart'] ),
+			// Hints are permanent help, so they never start a tour.
+			'autoStart'  => 'hint' !== $mode && ! empty( $raw['autoStart'] ),
 			'capability' => $capability,
 			'mode'       => $mode,
 			'screens'    => $screens,
@@ -276,6 +282,10 @@ class Tour_Parser {
 			$step['side'] = $side;
 		}
 
+		if ( isset( $raw['hintPlacement'] ) && in_array( $raw['hintPlacement'], allowed_hint_placements(), true ) ) {
+			$step['hintPlacement'] = $raw['hintPlacement'];
+		}
+
 		if ( isset( $raw['screens'] ) ) {
 			$screens = self::parse_screens( $raw['screens'] );
 			if ( array() !== $screens ) {
@@ -283,7 +293,49 @@ class Tour_Parser {
 			}
 		}
 
+		if ( isset( $raw['media'] ) ) {
+			$media = self::parse_media( $raw['media'] );
+			if ( null === $media ) {
+				log_once( 'media:' . $id, sprintf( 'dropped invalid media on step "%s": poster and video slugs are required.', $id ) );
+			} else {
+				$step['media'] = $media;
+			}
+		}
+
 		return $step;
+	}
+
+	/**
+	 * Parse a step media payload. Values are media library attachment slugs on the primary site.
+	 *
+	 * `Tour_Media::resolve_tours()` turns the slugs into URLs when the tour is localized.
+	 *
+	 * @param mixed $raw Raw payload.
+	 * @return array{poster: string, video: string, alt: string, captions?: string}|null
+	 */
+	public static function parse_media( $raw ): ?array {
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+
+		$poster = sanitize_title( (string) ( $raw['poster'] ?? '' ) );
+		$video  = sanitize_title( (string) ( $raw['video'] ?? '' ) );
+		if ( '' === $poster || '' === $video ) {
+			return null;
+		}
+
+		$media = array(
+			'poster' => $poster,
+			'video'  => $video,
+			'alt'    => sanitize_text_field( (string) ( $raw['alt'] ?? '' ) ),
+		);
+
+		$captions = sanitize_title( (string) ( $raw['captions'] ?? '' ) );
+		if ( '' !== $captions ) {
+			$media['captions'] = $captions;
+		}
+
+		return $media;
 	}
 
 	/**

@@ -115,7 +115,7 @@ export function shouldAutoStart(tour, progress, current) {
 }
 
 /**
- * @typedef {'spotlight'|'splash'|'announcement'} TourMode
+ * @typedef {'spotlight'|'splash'|'announcement'|'hint'} TourMode
  */
 
 /**
@@ -152,6 +152,30 @@ export function findPendingAnnouncement(tours, progressMap, current) {
 				anyScreenMatches(tour.screens, current)
 		) || null
 	);
+}
+
+/**
+ * Hint steps that run on this screen. Hints never auto-start or store progress.
+ *
+ * @param {Object[]} tours   Matching tours.
+ * @param {Object}   current Current screen.
+ * @return {{tour: Object, step: Object, key: string}[]} Hint steps with a selector.
+ */
+export function hintSteps(tours, current) {
+	if (!Array.isArray(tours)) {
+		return [];
+	}
+	return tours
+		.filter((tour) => tourMode(tour) === 'hint')
+		.flatMap((tour) =>
+			visibleSteps(tour, current)
+				.filter(({ step }) => !!step.selector)
+				.map(({ step }) => ({
+					tour,
+					step,
+					key: `${tour.id}/${step.id}`,
+				}))
+		);
 }
 
 export const WELCOME_TOUR_ID = 'prc-wp-admin-tours/welcome';
@@ -198,6 +222,7 @@ function autoStartsOnLoad(tour, progressMap, current, welcome) {
 		case 'spotlight':
 			return shouldAutoStart(tour, progress, current);
 		case 'announcement':
+		case 'hint':
 			return false;
 		default:
 			return false;

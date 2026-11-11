@@ -15,6 +15,8 @@ namespace PRC\Platform\Wp_Admin_Tours;
  * @package PRC\Platform\Wp_Admin_Tours
  */
 class Bootstrap {
+	public const TEST_TOURS_OPTION = 'prc_wp_admin_tours_test_tours';
+
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
 	 * the plugin.
@@ -31,6 +33,13 @@ class Bootstrap {
 	 * @var Tour_Registry
 	 */
 	protected Tour_Registry $registry;
+
+	/**
+	 * Training module registry.
+	 *
+	 * @var Training_Module_Registry
+	 */
+	protected Training_Module_Registry $training_modules;
 
 	/**
 	 * The unique identifier of this plugin.
@@ -75,10 +84,17 @@ class Bootstrap {
 		$this->loader = new Loader();
 
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-tour-parser.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-tour-media.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-tour-registry.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-progress.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-screen.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-rest-controller.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-training-module-registry.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-training-progress.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-training-gate.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-training-rest-controller.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-training-sandbox.php';
+		require_once plugin_dir_path( __DIR__ ) . '/includes/class-training-profile.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-assets.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-setup-fields.php';
 		require_once plugin_dir_path( __DIR__ ) . '/includes/class-welcome.php';
@@ -95,13 +111,67 @@ class Bootstrap {
 	 * @access   private
 	 */
 	private function init_dependencies() {
-		$this->registry = new Tour_Registry( $this->get_loader() );
+		$this->registry         = new Tour_Registry( $this->get_loader() );
+		$this->training_modules = new Training_Module_Registry( $this->get_loader() );
+		new Training_Gate( $this->get_loader() );
 		new Welcome( $this->get_loader() );
 		new REST_Controller( $this->get_loader(), $this->registry );
-		new Assets( $this->get_loader(), $this->registry );
+		$training_rest = new Training_REST_Controller( $this->get_loader(), $this->registry, $this->training_modules );
+		new Training_Sandbox( $this->get_loader(), $training_rest );
+		new Training_Profile( $this->get_loader(), $this->training_modules );
+		new Assets( $this->get_loader(), $this->registry, $this->training_modules );
 		new Restart_Onboarding( $this->get_loader(), $this->registry );
 		new Announcement_Post_Type( $this->get_loader() );
 		new Legacy_Splash_Conversion( $this->get_loader() );
+		new Tour_Media( $this->get_loader() );
+		$this->maybe_load_test_fixtures();
+	}
+
+	/**
+	 * In PRC_PLATFORM_TESTING_MODE, register tours that Playwright specs write to an option.
+	 *
+	 * The VIP dev-env does not mount `tests/`, so specs send their fixture tours over
+	 * `POST /wp/v2/settings` instead of a PHP fixture file.
+	 */
+	private function maybe_load_test_fixtures(): void {
+		if ( ! defined( 'PRC_PLATFORM_TESTING_MODE' ) || ! PRC_PLATFORM_TESTING_MODE ) {
+			return;
+		}
+		$this->loader->add_action( 'init', $this, 'register_test_tours_setting' );
+		$this->loader->add_action( Tour_Registry::ACTION_REGISTER, $this, 'register_test_tours' );
+	}
+
+	/**
+	 * Expose the fixture option to the settings REST route.
+	 *
+	 * @hook init
+	 */
+	public function register_test_tours_setting(): void {
+		register_setting(
+			'prc_wp_admin_tours_testing',
+			self::TEST_TOURS_OPTION,
+			array(
+				'type'         => 'string',
+				'default'      => '',
+				'show_in_rest' => true,
+			)
+		);
+	}
+
+	/**
+	 * Register the fixture tours, a JSON list of raw tour arrays.
+	 *
+	 * @hook prc_wp_admin_tours_register
+	 *
+	 * @param Tour_Registry $registry Tour registry.
+	 */
+	public function register_test_tours( $registry ): void {
+		$tours = json_decode( (string) get_option( self::TEST_TOURS_OPTION, '' ), true );
+		foreach ( is_array( $tours ) ? $tours : array() as $tour ) {
+			if ( is_array( $tour ) ) {
+				$registry->register( $tour );
+			}
+		}
 	}
 
 	/**
@@ -151,5 +221,14 @@ class Bootstrap {
 	 */
 	public function get_registry(): Tour_Registry {
 		return $this->registry;
+	}
+
+	/**
+	 * Training module registry.
+	 *
+	 * @return Training_Module_Registry
+	 */
+	public function get_training_modules(): Training_Module_Registry {
+		return $this->training_modules;
 	}
 }

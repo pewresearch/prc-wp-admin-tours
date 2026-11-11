@@ -1,0 +1,28 @@
+.prc-wp-admin-tours-hint__popover .components-popover__content {
+	width: min(320px, calc(100vw - 24px));
+	padding: 12px;
+}
+
+.prc-wp-admin-tours-hint__content {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+
+	&:focus {
+		outline: none;
+	}
+}
+
+.prc-wp-admin-tours-hint__title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.prc-wp-admin-tours-hint__description {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	white-space: pre-line;
+}

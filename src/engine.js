@@ -6,6 +6,7 @@ import { driver } from 'driver.js';
 /**
  * WordPress Dependencies
  */
+import { doAction } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -13,6 +14,8 @@ import { __ } from '@wordpress/i18n';
  */
 import { mountAnnouncement, unmountAnnouncement } from './announcement';
 import { resolveNextClickTarget } from './advance';
+import { TOUR_COMPLETED } from './hooks';
+import { mountPopoverMedia, unmountVideoModal } from './media';
 import { closeUnrelatedExpandedToggles } from './popovers';
 import { getProgress, resetProgress, saveProgress } from './progress';
 import {
@@ -26,6 +29,12 @@ import { hasWelcomeContent, mountWelcome, unmountWelcome } from './welcome';
 
 let activeDriver = null;
 let suppressDestroyPersist = false;
+let unmountStepMedia = null;
+
+function clearStepMedia() {
+	unmountStepMedia?.();
+	unmountStepMedia = null;
+}
 
 export {
 	detectScreen,
@@ -152,7 +161,17 @@ export function driveTour(tour, startGlobalIndex = 0) {
 		nextBtnText: __('Next', 'prc-wp-admin-tours'),
 		doneBtnText: __('Done', 'prc-wp-admin-tours'),
 		skipMissingElement: true,
-		onPopoverRender: (popover) => {
+		onPopoverRender: (popover, { state }) => {
+			clearStepMedia();
+			const activeStep = state?.activeStep;
+			unmountStepMedia = mountPopoverMedia(
+				popover,
+				{
+					title: activeStep?.popover?.title,
+					media: activeStep?.data?.media,
+				},
+				() => activeDriver?.refresh()
+			);
 			if (popover.closeButton) {
 				popover.closeButton.setAttribute(
 					'aria-label',
@@ -170,6 +189,11 @@ export function driveTour(tour, startGlobalIndex = 0) {
 			if (finishStatus === 'dismissed' || finishStatus === 'completed') {
 				instance.destroy();
 				return;
+			}
+			// driver.js ignores refresh() during its step transition, so a
+			// poster that rendered mid-transition left the popover misplaced.
+			if (step?.data?.media) {
+				instance.refresh();
 			}
 			const globalIndex = step?.data?.globalIndex;
 			if (typeof globalIndex !== 'number') {
@@ -233,6 +257,8 @@ export function driveTour(tour, startGlobalIndex = 0) {
 			}
 		},
 		onDestroyed: () => {
+			clearStepMedia();
+			unmountVideoModal();
 			disconnectGoneObserver();
 			window.removeEventListener('pagehide', persistLeave);
 			if (activeDriver === driverObj) {
@@ -245,7 +271,7 @@ export function driveTour(tour, startGlobalIndex = 0) {
 				void saveProgress({
 					tourId: tour.id,
 					status: 'completed',
-				});
+				}).then((progress) => doAction(TOUR_COMPLETED, tour, progress));
 				return;
 			}
 			if (finishStatus === 'in_progress') {
@@ -276,6 +302,7 @@ export function driveTour(tour, startGlobalIndex = 0) {
 				globalIndex: index,
 				clickOnNext: step.clickOnNext,
 				advanceWhenGone: !!step.advanceWhenGone,
+				media: step.media,
 			},
 		})),
 	});
@@ -302,6 +329,8 @@ export async function restartTour(tour) {
 			stopActiveTour();
 			unmountWelcome();
 			mountAnnouncement(tour, { openImmediately: true });
+			break;
+		case 'hint':
 			break;
 		default:
 			break;
@@ -369,6 +398,7 @@ export function startMatchingTours(tours, progressMap) {
 			break;
 		}
 		case 'announcement':
+		case 'hint':
 			break;
 		default:
 			break;

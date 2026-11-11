@@ -20,6 +20,7 @@ class Tour_Registry {
 		'splash'       => 1,
 		'announcement' => 2,
 		'spotlight'    => 3,
+		'hint'         => 4,
 	);
 
 	/**
@@ -135,7 +136,7 @@ class Tour_Registry {
 	}
 
 	/**
-	 * Welcome first, then splashes, then announcements newest first, then spotlight tours.
+	 * Welcome first, then splashes, then announcements newest first, then spotlight tours, then hints.
 	 *
 	 * @param array<int, array<string, mixed>> $tours Matching tours.
 	 * @return array<int, array<string, mixed>>
