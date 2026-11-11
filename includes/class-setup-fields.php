@@ -30,6 +30,11 @@ use WP_User;
  *   dropdown; the value is `{ first_name, last_name, display_name }`.
  * - `editor_preferences`: block editor toggles; the value is
  *   `{ fixedToolbar: bool, distractionFree: bool }`.
+ * - `select_confirm`: a dropdown preselected with a looked-up suggestion.
+ *   The `value` callback returns `{ options: [{ value, label }], selected,
+ *   suggested }`, where `selected` is the saved choice and `suggested` the
+ *   server's guess. The submitted value is the chosen option value string.
+ *   An option with an empty value means "none".
  * - `popup_connect`: a button that opens a sign-in popup and waits for
  *   `{ status, message }` on a BroadcastChannel. The `value` callback returns
  *   `{ url, channel, buttonLabel, declineLabel, icon }`, where `icon` is an

@@ -25,6 +25,8 @@ import {
 	nameSubmitValue,
 } from './setup-fields/name-field';
 import { PopupConnectField } from './setup-fields/popup-connect-field';
+import { SelectConfirmField } from './setup-fields/select-confirm-field';
+import { selectConfirmInitialValue } from './setup-fields/select-confirm';
 
 export function getSetupFields() {
 	const fields = window.prcWpAdminTours?.welcome?.setupFields;
@@ -143,6 +145,15 @@ function SetupField({ field, value, error, onChange }) {
 					onChange={onChange}
 				/>
 			);
+		case 'select_confirm':
+			return (
+				<SelectConfirmField
+					field={field}
+					value={value}
+					error={error}
+					onChange={onChange}
+				/>
+			);
 		case 'slack_connect':
 			return <SlackConnectControl field={field} />;
 		case 'popup_connect':
@@ -174,6 +185,8 @@ function initialValue(field) {
 			return nameInitialValue(field);
 		case 'editor_preferences':
 			return editorPreferencesInitialValue(field);
+		case 'select_confirm':
+			return selectConfirmInitialValue(field);
 		case 'slack_connect':
 		case 'popup_connect':
 		default:
@@ -187,6 +200,7 @@ function submitValue(field, value) {
 			return nameSubmitValue(field, value);
 		case 'text':
 		case 'editor_preferences':
+		case 'select_confirm':
 		default:
 			return value;
 	}
