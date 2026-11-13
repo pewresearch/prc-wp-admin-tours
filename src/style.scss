@@ -34,3 +34,16 @@
 svg.driver-overlay {
 	z-index: 1000003 !important;
 }
+
+// Stand-in over a node in the editor canvas iframe (src/canvas-target.js).
+.prc-wp-admin-tours-canvas-target {
+	position: fixed;
+	pointer-events: none !important;
+}
+
+// driver.js turns off pointer events on every node outside the highlight. Turn
+// them back on for the canvas, so the highlight cutout reaches the canvas node.
+.driver-active.prc-wp-admin-tours-canvas-interactive
+	iframe[name="editor-canvas"] {
+	pointer-events: auto;
+}

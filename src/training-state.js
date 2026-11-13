@@ -12,9 +12,23 @@ export function activeTrainingModule(training) {
 }
 
 /**
+ * Whether a training module runs this tour.
+ *
+ * @param {Object|null} training `prcWpAdminTours.training`.
+ * @param {string}      tourId   Tour id.
+ */
+export function isTrainingTour(training, tourId) {
+	return (
+		Array.isArray(training?.modules) &&
+		training.modules.some((module) => module.tour === tourId)
+	);
+}
+
+/**
  * The active module's tour and the step to start on, or null when it has
  * nothing to run. A completed tour does not run again until the module is
- * started again, which resets it.
+ * started again, which resets it. On a reload (`resumeOnly`), a skipped tour
+ * stays skipped too.
  *
  * @param {Object[]}    tours       Localized tours.
  * @param {Object|null} training    `prcWpAdminTours.training`.
@@ -32,6 +46,9 @@ export function findTrainingTour(tours, training, progressMap) {
 	}
 	const progress = progressMap?.[tour.id];
 	if (progress?.status === 'completed') {
+		return null;
+	}
+	if (progress?.status === 'dismissed' && training.resumeOnly) {
 		return null;
 	}
 	return {

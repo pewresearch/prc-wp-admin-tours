@@ -32,7 +32,9 @@ function boot() {
 
 	const trainingTour = findTrainingTour(tours, training, progress);
 	if (trainingTour) {
-		driveTour(trainingTour.tour, trainingTour.startIndex);
+		driveTour(trainingTour.tour, trainingTour.startIndex, {
+			showBack: true,
+		});
 		return;
 	}
 

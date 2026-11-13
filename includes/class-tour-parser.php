@@ -255,14 +255,6 @@ class Tour_Parser {
 			$side = $raw['side'];
 		}
 
-		$click_on_next = null;
-		if ( isset( $raw['clickOnNext'] ) && null !== $raw['clickOnNext'] ) {
-			$click_on_next = trim( sanitize_text_field( (string) $raw['clickOnNext'] ) );
-			if ( '' === $click_on_next ) {
-				$click_on_next = null;
-			}
-		}
-
 		$step = array(
 			'id'                       => $id,
 			'title'                    => $title,
@@ -274,8 +266,11 @@ class Tour_Parser {
 			'disableActiveInteraction' => ! empty( $raw['disableActiveInteraction'] ),
 		);
 
-		if ( null !== $click_on_next ) {
-			$step['clickOnNext'] = $click_on_next;
+		foreach ( array( 'clickOnNext', 'clickOnBack' ) as $key ) {
+			$click = isset( $raw[ $key ] ) ? trim( sanitize_text_field( (string) $raw[ $key ] ) ) : '';
+			if ( '' !== $click ) {
+				$step[ $key ] = $click;
+			}
 		}
 
 		if ( null !== $side ) {

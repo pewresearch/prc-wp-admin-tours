@@ -136,14 +136,17 @@ class Assets {
 	}
 
 	/**
-	 * Training modules whose tour runs on this screen, and the module named by `?prc-training=`.
+	 * Training modules whose tour runs on this screen, and the module named by
+	 * `?prc-training=` or by the user's sandbox open in the editor.
 	 *
-	 * Null when training is not rolled out to the user.
+	 * Null when training is not rolled out to the user. `resumeOnly` is true when
+	 * the module comes from the open sandbox, not from the query arg: a reload,
+	 * where a skipped tour stays skipped.
 	 *
 	 * @param Training_Module_Registry         $registry Module registry.
 	 * @param array<int, array<string, mixed>> $tours    Tours localized on this screen.
 	 * @param int                              $user_id  User id.
-	 * @return array{restUrl: string, activeModuleId: string, modules: array<int, array<string, mixed>>}|null
+	 * @return array{restUrl: string, activeModuleId: string, resumeOnly: bool, modules: array<int, array<string, mixed>>}|null
 	 */
 	public static function training_payload( Training_Module_Registry $registry, array $tours, int $user_id ): ?array {
 		if ( ! Training_Gate::is_enabled( $user_id ) ) {
@@ -162,7 +165,11 @@ class Assets {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Read-only; sanitize_tour_id() sanitizes.
-		$active = isset( $_GET[ TRAINING_QUERY_ARG ] ) ? sanitize_tour_id( wp_unslash( (string) $_GET[ TRAINING_QUERY_ARG ] ) ) : '';
+		$active     = isset( $_GET[ TRAINING_QUERY_ARG ] ) ? sanitize_tour_id( wp_unslash( (string) $_GET[ TRAINING_QUERY_ARG ] ) ) : '';
+		$from_query = '' !== $active;
+		if ( ! $from_query ) {
+			$active = Training_Sandbox::editor_module( $user_id );
+		}
 		if ( ! in_array( $active, array_column( $modules, 'id' ), true ) ) {
 			$active = '';
 		}
@@ -170,6 +177,7 @@ class Assets {
 		return array(
 			'restUrl'        => Training_REST_Controller::rest_url(),
 			'activeModuleId' => $active,
+			'resumeOnly'     => '' !== $active && ! $from_query,
 			'modules'        => $modules,
 		);
 	}

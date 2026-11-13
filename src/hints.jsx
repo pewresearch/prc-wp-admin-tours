@@ -15,13 +15,13 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal Dependencies
  */
+import { EDITOR_CANVAS, canvasDocuments, findTarget } from './editor-canvas';
 import { PosterButton, VideoModal } from './media';
 import { detectScreen, hintSteps } from './screen';
 import './hints.scss';
 
 const HOST_CLASS = 'prc-wp-admin-tours-hint';
 const STYLE_ID = 'prc-wp-admin-tours-hint-style';
-const EDITOR_CANVAS = 'iframe[name="editor-canvas"]';
 const CLOSE_DELAY_MS = 200;
 
 const INSERT_POSITION = {
@@ -218,34 +218,6 @@ function injectIconStyle(doc) {
 	style.id = STYLE_ID;
 	style.textContent = ICON_CSS;
 	(doc.head || doc.body).appendChild(style);
-}
-
-function canvasDocuments() {
-	const docs = [];
-	document.querySelectorAll(EDITOR_CANVAS).forEach((iframe) => {
-		try {
-			if (iframe.contentDocument?.body) {
-				docs.push(iframe.contentDocument);
-			}
-		} catch {
-			// A cross-origin frame is not an editor canvas.
-		}
-	});
-	return docs;
-}
-
-function findTarget(docs, selector) {
-	for (const doc of docs) {
-		try {
-			const target = doc.querySelector(selector);
-			if (target) {
-				return target;
-			}
-		} catch {
-			return null;
-		}
-	}
-	return null;
 }
 
 /**

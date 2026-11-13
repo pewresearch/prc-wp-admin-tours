@@ -26,6 +26,8 @@ class Training_Sandbox {
 
 	public const START_ACTION = 'prc_wp_admin_tours_training_start';
 
+	public const WELCOME_GUIDE_HANDLE = 'prc-wp-admin-tours-training-welcome-guide';
+
 	/**
 	 * Query var that lets a query see sandbox drafts.
 	 */
@@ -59,6 +61,7 @@ class Training_Sandbox {
 		$loader->add_action( 'pre_get_posts', $this, 'exclude_from_query' );
 		$loader->add_filter( 'prc_wp_admin_dataview_query_args', $this, 'exclude_from_query_args' );
 		$loader->add_action( 'admin_post_' . self::START_ACTION, $this, 'handle_start_request' );
+		$loader->add_action( 'enqueue_block_editor_assets', $this, 'suppress_welcome_guide' );
 	}
 
 	/**
@@ -276,6 +279,63 @@ class Training_Sandbox {
 		return $post_id > 0
 			&& null !== get_post( $post_id )
 			&& '' !== (string) get_post_meta( $post_id, self::META_MODULE, true );
+	}
+
+	/**
+	 * Module id of a sandbox the user owns, or an empty string for any other post.
+	 *
+	 * @param mixed $post    Post object.
+	 * @param int   $user_id User id.
+	 */
+	public static function module_of( $post, int $user_id ): string {
+		if ( ! is_object( $post ) || empty( $post->ID ) || $user_id <= 0 || (int) ( $post->post_author ?? 0 ) !== $user_id ) {
+			return '';
+		}
+		return (string) get_post_meta( (int) $post->ID, self::META_MODULE, true );
+	}
+
+	/**
+	 * Module id of the user's sandbox open in the block editor, or an empty string.
+	 *
+	 * The block editor drops `?prc-training=` from the address bar after load,
+	 * so a reload reads the module from the post instead.
+	 *
+	 * @param int $user_id User id.
+	 */
+	public static function editor_module( int $user_id ): string {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! is_object( $screen ) || 'post' !== ( $screen->base ?? '' ) ) {
+			return '';
+		}
+		return self::module_of( get_post(), $user_id );
+	}
+
+	/**
+	 * Keep core's editor welcome guide closed in a sandbox, where it would cover the module tour.
+	 *
+	 * This sets the preference default, not the stored preference, so the guide
+	 * still opens in other posts for a user who never closed it.
+	 *
+	 * @hook enqueue_block_editor_assets
+	 */
+	public static function suppress_welcome_guide(): void {
+		if ( '' === self::editor_module( (int) get_current_user_id() ) ) {
+			return;
+		}
+
+		wp_register_script(
+			self::WELCOME_GUIDE_HANDLE,
+			false,
+			array( 'wp-edit-post', 'wp-preferences', 'wp-data', 'wp-dom-ready' ),
+			PRC_WP_ADMIN_TOURS_VERSION,
+			true
+		);
+		// Runs after the wp.domReady callback that initializes the editor and sets its defaults.
+		wp_add_inline_script(
+			self::WELCOME_GUIDE_HANDLE,
+			"wp.domReady( function () { wp.data.dispatch( 'core/preferences' ).setDefaults( 'core/edit-post', { welcomeGuide: false } ); } );"
+		);
+		wp_enqueue_script( self::WELCOME_GUIDE_HANDLE );
 	}
 
 	/**

@@ -13,11 +13,19 @@ import { __ } from '@wordpress/i18n';
  * Internal Dependencies
  */
 import { mountAnnouncement, unmountAnnouncement } from './announcement';
-import { resolveNextClickTarget } from './advance';
+import { resolveBackClickTarget, resolveNextClickTarget } from './advance';
+import {
+	clickableTarget,
+	focusCanvasTarget,
+	releaseCanvasTargets,
+	resolveStepElement,
+} from './canvas-target';
+import { queryAdminOrCanvas } from './editor-canvas';
 import { TOUR_COMPLETED } from './hooks';
 import { mountPopoverMedia, unmountVideoModal } from './media';
 import { closeUnrelatedExpandedToggles } from './popovers';
 import { getProgress, resetProgress, saveProgress } from './progress';
+import { resumeStep } from './resume';
 import {
 	detectScreen,
 	findAutoStartTour,
@@ -25,6 +33,7 @@ import {
 	tourMode,
 	visibleSteps,
 } from './screen';
+import { isTrainingTour } from './training-state';
 import { hasWelcomeContent, mountWelcome, unmountWelcome } from './welcome';
 
 let activeDriver = null;
@@ -58,7 +67,60 @@ export function stopActiveTour() {
 	suppressDestroyPersist = false;
 }
 
-export function driveTour(tour, startGlobalIndex = 0) {
+function labelCloseAsSkip(popover) {
+	if (!popover.closeButton) {
+		return;
+	}
+	popover.closeButton.setAttribute(
+		'aria-label',
+		__('Skip', 'prc-wp-admin-tours')
+	);
+	popover.closeButton.textContent = __('Skip', 'prc-wp-admin-tours');
+}
+
+function driverSteps(matching, showBack) {
+	return matching.map(({ step, index }) => ({
+		element: step.selector
+			? () =>
+					resolveStepElement(step.selector, {
+						onMove: () => activeDriver?.refresh(),
+					})
+			: undefined,
+		waitForElement: step.waitMs ?? 8000,
+		advanceOnClick: !!step.advanceOnClick,
+		disableActiveInteraction: !!step.disableActiveInteraction,
+		popover: {
+			title: step.title,
+			description: step.description,
+			side: step.side || 'bottom',
+			showButtons: showBack
+				? ['next', 'previous', 'close']
+				: ['next', 'close'],
+		},
+		data: {
+			globalIndex: index,
+			clickOnNext: step.clickOnNext,
+			clickOnBack: step.clickOnBack,
+			advanceWhenGone: !!step.advanceWhenGone,
+			media: step.media,
+		},
+	}));
+}
+
+/**
+ * Run a spotlight tour from a step.
+ *
+ * @param {Object}  tour               Tour.
+ * @param {number}  [startGlobalIndex] Tour step index to start on.
+ * @param {Object}  [options]
+ * @param {boolean} [options.showBack] Show a Back button, and resume on an earlier
+ *                                     step when the stored step cannot show. Training tours use it.
+ */
+export function driveTour(
+	tour,
+	startGlobalIndex = 0,
+	{ showBack = false } = {}
+) {
 	const current = detectScreen();
 	const matching = visibleSteps(tour, current);
 	if (matching.length === 0) {
@@ -159,6 +221,7 @@ export function driveTour(tour, startGlobalIndex = 0) {
 		popoverClass: 'prc-wp-admin-tours-popover',
 		progressText: '{{current}} of {{total}}',
 		nextBtnText: __('Next', 'prc-wp-admin-tours'),
+		prevBtnText: __('Back', 'prc-wp-admin-tours'),
 		doneBtnText: __('Done', 'prc-wp-admin-tours'),
 		skipMissingElement: true,
 		onPopoverRender: (popover, { state }) => {
@@ -172,16 +235,7 @@ export function driveTour(tour, startGlobalIndex = 0) {
 				},
 				() => activeDriver?.refresh()
 			);
-			if (popover.closeButton) {
-				popover.closeButton.setAttribute(
-					'aria-label',
-					__('Skip', 'prc-wp-admin-tours')
-				);
-				popover.closeButton.textContent = __(
-					'Skip',
-					'prc-wp-admin-tours'
-				);
-			}
+			labelCloseAsSkip(popover);
 		},
 		onHighlighted: (element, step, { driver: instance, state }) => {
 			advanceLock = false;
@@ -243,7 +297,11 @@ export function driveTour(tour, startGlobalIndex = 0) {
 			nextClickDepth += 1;
 			clickedThisTurn.clear();
 			try {
-				const clickTarget = resolveNextClickTarget(step, element);
+				const clickTarget = resolveNextClickTarget(
+					step,
+					clickableTarget(element),
+					queryAdminOrCanvas
+				);
 				if (clickTarget) {
 					clickedThisTurn.add(clickTarget);
 					clickTarget.click();
@@ -256,7 +314,19 @@ export function driveTour(tour, startGlobalIndex = 0) {
 				nextClickDepth -= 1;
 			}
 		},
+		onPrevClick: (_element, step, { driver: instance }) => {
+			disconnectGoneObserver();
+			clickedThisTurn.clear();
+			resolveBackClickTarget(step, queryAdminOrCanvas)?.click();
+			instance.movePrevious();
+		},
+		onHighlightStarted: (element, step) => {
+			focusCanvasTarget(element, {
+				interactive: !step?.disableActiveInteraction,
+			});
+		},
 		onDestroyed: () => {
+			releaseCanvasTargets();
 			clearStepMedia();
 			unmountVideoModal();
 			disconnectGoneObserver();
@@ -287,28 +357,23 @@ export function driveTour(tour, startGlobalIndex = 0) {
 				status: 'dismissed',
 			});
 		},
-		steps: matching.map(({ step, index }) => ({
-			element: step.selector || undefined,
-			waitForElement: step.waitMs ?? 8000,
-			advanceOnClick: !!step.advanceOnClick,
-			disableActiveInteraction: !!step.disableActiveInteraction,
-			popover: {
-				title: step.title,
-				description: step.description,
-				side: step.side || 'bottom',
-				showButtons: ['next', 'close'],
-			},
-			data: {
-				globalIndex: index,
-				clickOnNext: step.clickOnNext,
-				advanceWhenGone: !!step.advanceWhenGone,
-				media: step.media,
-			},
-		})),
+		steps: driverSteps(matching, showBack),
 	});
 
 	activeDriver = driverObj;
-	driverObj.drive(startLocal);
+	if (!showBack || startLocal === 0) {
+		driverObj.drive(startLocal);
+		return;
+	}
+	// A reload can reset page state a later step needs, such as the chart
+	// wizard step. Resume on the nearest earlier step that can show.
+	void resumeStep(matching, startLocal, { query: queryAdminOrCanvas }).then(
+		(index) => {
+			if (activeDriver === driverObj) {
+				driverObj.drive(index);
+			}
+		}
+	);
 }
 
 export async function restartTour(tour) {
@@ -323,7 +388,12 @@ export async function restartTour(tour) {
 		case 'spotlight':
 			unmountAnnouncement();
 			unmountWelcome();
-			driveTour(tour, 0);
+			driveTour(tour, 0, {
+				showBack: isTrainingTour(
+					window.prcWpAdminTours?.training,
+					tour.id
+				),
+			});
 			break;
 		case 'announcement':
 			stopActiveTour();
